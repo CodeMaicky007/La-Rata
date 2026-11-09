@@ -15,46 +15,52 @@
 <link rel="apple-touch-icon" href="/icono-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@500;700;800&family=Alegreya+Sans:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Figtree:wght@400;500;600;700&display=swap">
 <style>
 /*BASE_CSS*/
 
 /* ---------- app con servidor ---------- */
 html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
-.campo-solo input { padding-left: 14px; }
-.codigo-input { text-transform: uppercase; letter-spacing: .35em; text-align: center; font-family: var(--display); font-weight: 800; font-size: 22px !important; }
+.campo-solo input { padding-left: 16px; }
+.banderas { display: flex; align-items: center; justify-content: center; gap: 12px; }
+.banderas .muted { font-size: .95rem; }
+.final .banderas .bandera { width: 54px; }
 .unirse { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
-.unirse input { width: 100%; min-width: 0; min-height: 52px; font: inherit; color: var(--fg); background: rgba(0, 0, 0, .28); border: 1px solid var(--linea); border-radius: 12px; padding: 10px 12px; }
-.unirse input:focus { outline: 2px solid var(--oro); outline-offset: 1px; }
+.unirse input { width: 100%; min-width: 0; min-height: 54px; font: inherit; color: var(--fg); background: rgba(0, 0, 0, .35); border: 1px solid var(--borde); border-radius: 14px; padding: 10px 12px; }
+.unirse input:focus { outline: none; border-color: var(--gualda); box-shadow: 0 0 0 3px rgba(241,191,0,.2); }
+.codigo-input { text-transform: uppercase; letter-spacing: .35em; text-align: center; font-family: var(--display) !important; font-weight: 900 !important; font-size: 22px !important; }
 .separador { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: .85rem; }
-.separador::before, .separador::after { content: ""; flex: 1; height: 1px; background: var(--linea); }
-.codigo-sala { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px; border-radius: 18px; background: rgba(0,0,0,.25); border: 1px dashed rgba(224,174,76,.5); }
-.codigo-sala .letras { font-family: var(--display); font-weight: 800; font-size: 2.6rem; letter-spacing: .3em; color: var(--naipe); padding-left: .3em; }
+.separador::before, .separador::after { content: ""; flex: 1; height: 1px; background: var(--borde); }
+.codigo-sala { position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 20px 14px 16px; border-radius: 22px; background: var(--panel); border: 1px solid var(--borde); backdrop-filter: blur(14px); }
+.codigo-sala .franja.arriba { position: absolute; left: 0; right: 0; top: 0; border-radius: 0; }
+.codigo-sala .letras { font-family: var(--display); font-weight: 900; font-stretch: 80%; font-size: 3rem; letter-spacing: .28em; padding-left: .28em; line-height: 1.1; color: #fff; text-shadow: 0 3px 0 var(--rojo-hondo); }
 .sala-lista { display: grid; gap: 8px; }
-.sala-fila { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 14px; background: rgba(0,0,0,.24); border: 1px solid var(--linea); }
-.sala-fila .asiento-n { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-family: var(--display); font-weight: 800; background: var(--naipe); color: var(--tinta); }
+.sala-fila { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 16px; background: var(--panel); border: 1px solid var(--borde); }
+.sala-fila .asiento-n { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-family: var(--display); font-weight: 900; background: linear-gradient(180deg, #ffd84d, var(--gualda)); color: #2a1b00; }
 .sala-fila .nm { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-.sala-fila .tu { color: var(--oro); font-weight: 500; font-size: .85rem; }
+.sala-fila .tu { color: var(--gualda); font-weight: 600; font-size: .84rem; }
 .sala-fila .ctrl { display: flex; gap: 4px; }
-.sala-fila .ctrl button { appearance: none; width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--linea); background: rgba(255,255,255,.05); cursor: pointer; font-weight: 700; }
+.sala-fila .ctrl button { appearance: none; width: 38px; height: 38px; border-radius: 11px; border: 0; background: var(--panel-fuerte); cursor: pointer; font-weight: 800; }
 .sala-fila .ctrl button:disabled { opacity: .3; }
 .sala-fila.desconectado { opacity: .5; }
-.nota { font-size: .9rem; color: var(--muted); border-left: 3px solid var(--oro); padding-left: 10px; }
+.nota { font-size: .9rem; color: var(--muted); border-left: 4px solid; border-image: linear-gradient(180deg, var(--rojo), var(--gualda), var(--rojo)) 1; padding-left: 12px; }
 .puntos::after { content: ""; animation: puntos 1.4s steps(4) infinite; }
 @keyframes puntos { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
 .estado-turno { text-align: center; font-size: 1.05rem; }
-.estado-turno b { color: var(--oro); }
-.mesa .naipe { --w: min(54vw, 220px, 27dvh); }
+.estado-turno b { color: var(--gualda); }
+.mesa .naipe { --w: min(52vw, 210px, 26dvh); }
 .mesa .naipe.toca { cursor: pointer; }
 .pista { text-align: center; font-size: .8rem; color: var(--muted); }
-.banner-cambio.mio { background: linear-gradient(90deg, rgba(224,174,76,.35), rgba(224,174,76,.1)); border-color: rgba(224,174,76,.5); }
+.banner-cambio.mio { background: linear-gradient(100deg, rgba(241,191,0,.32), rgba(241,191,0,.08)); border-color: rgba(241,191,0,.5); }
 .espectador { text-align: center; padding: 30px 0; display: grid; gap: 10px; justify-items: center; }
 .anfitrion-extra { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-.conexion { position: fixed; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); z-index: 30; background: rgba(168,35,27,.92); color: var(--naipe); padding: 6px 14px; border-radius: 999px; font-size: .85rem; }
-.instalar { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; background: rgba(224,174,76,.12); border: 1px solid rgba(224,174,76,.4); }
+.conexion { position: fixed; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); z-index: 30; background: rgba(200,16,46,.95); color: #fff; padding: 7px 15px; border-radius: 999px; font-size: .85rem; font-weight: 600; }
+.instalar { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 18px; background: linear-gradient(100deg, rgba(241,191,0,.16), rgba(200,16,46,.12)); border: 1px solid rgba(241,191,0,.4); }
 .instalar p { flex: 1; font-size: .92rem; }
 .turno-ficha.off { opacity: .45; }
 .enlace { display: block; text-align: center; color: var(--muted); font-size: .9rem; }
+.creditos { text-align: center; color: var(--muted); font-size: .74rem; opacity: .8; }
+.creditos a { color: inherit; }
 </style>
 </head>
 <body>
@@ -121,32 +127,6 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
     del(k) { try { localStorage.removeItem(k); } catch (_) { /* sin almacenamiento */ } },
   };
 
-  function naipe(card, { up = false, cls = '' } = {}) {
-    const kids = [h('div', { class: 'dorso' }, h('div', { class: 'ovalo', html: RAT }))];
-    if (card) {
-      const face = h('div', { class: 'cara' }, h('div', { class: 'marco' }));
-      for (let i = 0; i < PINTA_CORTES[card.suit]; i++) {
-        const pos = `${30 + i * 14}%`;
-        face.appendChild(h('span', { class: 'pinta arriba', style: `left:${pos}` }));
-        face.appendChild(h('span', { class: 'pinta abajo', style: `right:${pos}` }));
-      }
-      face.appendChild(h('span', { class: 'indice ar' }, String(card.rank)));
-      face.appendChild(h('span', { class: 'indice ab' }, String(card.rank)));
-      if (card.rank >= 10) {
-        face.appendChild(h('div', { class: 'figura' },
-          h('div', { class: 'emblema', html: EMBLEM[card.rank] }),
-          h('div', { class: 'palo', html: SUIT[card.suit] }),
-          h('div', { class: 'nombre' }, RANK_NAME[card.rank].toUpperCase())));
-      } else {
-        const pips = h('div', { class: 'pips' });
-        if (card.rank === 1) pips.appendChild(h('div', { class: 'pip grande', style: 'left:50%;top:50%', html: SUIT[card.suit] }));
-        else for (const [x, y] of PIP_LAYOUT[card.rank]) pips.appendChild(h('div', { class: 'pip', style: `left:${x}%;top:${y}%`, html: SUIT[card.suit] }));
-        face.appendChild(pips);
-      }
-      kids.push(face);
-    }
-    return h('div', { class: `naipe ${up ? 'boca-arriba' : ''} ${cls}`.trim(), role: 'img', 'aria-label': card && up ? cardName(card) : 'Carta boca abajo' }, h('div', { class: 'naipe-in' }, kids));
-  }
   function cardTags(card) {
     const tags = [];
     if (card.suit === 'bastos' && card.rank === 1) tags.push(h('span', { class: 'sello malo' }, 'As de bastos: −2 vidas'));
@@ -366,7 +346,8 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
       h('div', { class: 'portada' },
         h('div', { class: 'abanico', 'aria-hidden': 'true' }, naipe(null), naipe({ rank: 1, suit: 'oros' }, { up: true }), naipe(null)),
         h('h1', { class: 'titulo' }, 'La Rata'),
-        h('p', { class: 'muted' }, 'Cada uno con su móvil y su carta.')),
+        franja(),
+        h('div', { class: 'banderas' }, h('span', { class: 'bandera', html: FLAG_ESPANA }), h('p', { class: 'muted' }, 'Cada uno con su móvil y su carta'), h('span', { class: 'bandera', html: FLAG_BORGONA }))),
       installCard(),
       h('div', { class: 'bloque' }, h('span', { class: 'etiqueta' }, 'TU NOMBRE'), nameField()),
       h('div', { class: 'bloque' }, h('span', { class: 'etiqueta' }, fromLink ? 'TE HAN INVITADO A LA SALA' : 'ENTRAR CON CÓDIGO'), h('div', { class: 'unirse' }, code, unir)),
@@ -379,7 +360,8 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
         h('li', null, 'Gana la carta más baja. Un 12 gana la ronda al momento.'),
         h('li', null, 'As de bastos: −2 vidas. Rey de bastos: +1 vida, salvo con pelle.'),
         h('li', null, 'Sin vidas quedas fuera. Gana el último que siga vivo.'))),
-      h('a', { class: 'enlace', href: '/una-pantalla.html' }, '¿Solo hay un móvil? Jugad pasándolo de mano en mano'));
+      h('a', { class: 'enlace', href: '/una-pantalla.html' }, '¿Solo hay un móvil? Jugad pasándolo de mano en mano'),
+      h('p', { class: 'creditos' }, 'Naipes: baraja española de Basquetteur (Wikimedia Commons), ', h('a', { href: 'https://creativecommons.org/licenses/by-sa/3.0/deed.es', target: '_blank', rel: 'noopener' }, 'CC BY-SA 3.0'), '. Oros retocados.'));
   }
 
   async function shareCode() {
@@ -405,8 +387,8 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
         x.p !== snap.me ? h('button', { 'aria-label': `Sacar a ${x.n}`, tap: () => send({ type: 'kick', target: x.p }) }, '×') : null) : h('span'))));
 
     const parts = [cabecera(host ? 'Tú llevas la mesa' : `Mesa de ${nameOf(snap.host)}`),
-      h('div', { class: 'codigo-sala' }, h('span', { class: 'eyebrow' }, 'CÓDIGO DE LA SALA'), h('span', { class: 'letras' }, snap.code),
-        h('button', { class: 'btn chico', tap: shareCode }, 'Invitar por WhatsApp o enlace')),
+      h('div', { class: 'codigo-sala' }, franja('arriba'), h('span', { class: 'eyebrow' }, 'Código de la sala'), h('span', { class: 'letras' }, snap.code),
+        h('button', { class: 'btn chico', tap: shareCode }, h('span', { html: ICON.compartir }), 'Invitar por WhatsApp o enlace')),
       h('div', { class: 'resultado' }, h('h2', null, `${lobby.length} en la mesa`)),
       lista,
       h('p', { class: 'nota' }, 'Ordenad la lista como estáis sentados: en tu turno cambias la carta con el siguiente de la lista, y el último con el primero.')];
@@ -461,7 +443,7 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
     const mine = P(snap.me);
     const card = myCard(snap);
     const myTurn = snap.cur === snap.me;
-    const parts = [cabecera(`Ronda ${snap.r} · ${snap.dk} en la baraja`), ordenTurnos()];
+    const parts = [cabecera(`Ronda ${snap.r}`), ordenTurnos()];
 
     if (banner && card) {
       const txt = banner.kind === 'recibido'
@@ -618,7 +600,7 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
     const screen = h('section', { class: 'screen' },
       cabecera(`Ronda ${snap.r}`),
       h('div', { class: 'final' },
-        h('span', { class: 'corona-grande', html: CROWN }),
+        h('div', { class: 'banderas' }, h('span', { class: 'bandera', html: FLAG_ESPANA }), h('span', { class: 'corona-grande', html: CROWN }), h('span', { class: 'bandera', html: FLAG_BORGONA })),
         h('span', { class: 'eyebrow' }, winner ? 'GANA LA PARTIDA' : 'NADIE SIGUE VIVO'),
         h('h2', { class: 'ganador' }, winner ? (winner.p === snap.me ? '¡Has ganado!' : winner.n) : 'Sin ganador')),
       h('div', { class: 'clasif' }, ranking.map((p) => h('div', { class: `fila ${p.p === snap.win ? 'primero' : ''}` }, h('span', null, p.n), h('span', { class: 'muted' }, p.a ? `♥${p.l}` : 'fuera')))),
@@ -628,7 +610,7 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
         : h('p', { class: 'estado-turno puntos' }, `Esperando a que ${nameOf(snap.host)} empiece otra`)));
     if (winner && !reduceMotion) {
       const c = h('div', { class: 'confeti', 'aria-hidden': 'true' });
-      const colors = ['#e0ae4c', '#a8231b', '#f4ead3', '#2c4f8c', '#3d7a33'];
+      const colors = ['#c8102e', '#f1bf00', '#c8102e', '#f1bf00', '#ffffff'];
       for (let i = 0; i < 60; i++) c.appendChild(h('i', { style: `left:${Math.random() * 100}%;background:${colors[i % 5]};animation-duration:${2.2 + Math.random() * 2}s;animation-delay:${Math.random() * .8}s` }));
       screen.appendChild(c);
       setTimeout(() => c.remove(), 5200);
@@ -685,6 +667,7 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
   try { if (navigator.wakeLock) navigator.wakeLock.request('screen').catch(() => {}); } catch (_) { /* sin bloqueo de pantalla */ }
   render();
   connect();
+  setTimeout(preloadCards, 1500);
 })();
 </script>
 </body>

@@ -29,6 +29,7 @@ const MIME = {
   '.css': 'text/css; charset=utf-8',
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
+  '.webp': 'image/webp',
   '.ico': 'image/x-icon',
   '.webmanifest': 'application/manifest+json',
   '.json': 'application/json; charset=utf-8',
@@ -291,7 +292,7 @@ function serveStatic(req, res) {
     }
     const ext = path.extname(filePath);
     // Iconos e imágenes se pueden guardar en caché; la app y el service worker siempre se revisan.
-    const cache = ext === '.png' || ext === '.svg' || ext === '.ico' ? 'public, max-age=604800' : 'no-cache';
+    const cache = ['.png', '.svg', '.ico', '.webp'].includes(ext) ? 'public, max-age=604800' : 'no-cache';
     res.writeHead(200, {
       'Content-Type': MIME[ext] || 'application/octet-stream',
       'Cache-Control': cache,

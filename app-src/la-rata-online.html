@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-title" content="La Rata">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@500;700;800&family=Alegreya+Sans:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Figtree:wght@400;500;600;700&display=swap">
 <style>
 /*BASE_CSS*/
 
@@ -106,32 +106,6 @@
   const randomId = () => Math.random().toString(36).slice(2, 10);
   const cardName = (c) => `${RANK_NAME[c.rank] || c.rank} de ${c.suit}`;
 
-  function naipe(card, { up = false, cls = '' } = {}) {
-    const kids = [h('div', { class: 'dorso' }, h('div', { class: 'ovalo', html: RAT }))];
-    if (card) {
-      const face = h('div', { class: 'cara' }, h('div', { class: 'marco' }));
-      for (let i = 0; i < PINTA_CORTES[card.suit]; i++) {
-        const pos = `${30 + i * 14}%`;
-        face.appendChild(h('span', { class: 'pinta arriba', style: `left:${pos}` }));
-        face.appendChild(h('span', { class: 'pinta abajo', style: `right:${pos}` }));
-      }
-      face.appendChild(h('span', { class: 'indice ar' }, String(card.rank)));
-      face.appendChild(h('span', { class: 'indice ab' }, String(card.rank)));
-      if (card.rank >= 10) {
-        face.appendChild(h('div', { class: 'figura' },
-          h('div', { class: 'emblema', html: EMBLEM[card.rank] }),
-          h('div', { class: 'palo', html: SUIT[card.suit] }),
-          h('div', { class: 'nombre' }, RANK_NAME[card.rank].toUpperCase())));
-      } else {
-        const pips = h('div', { class: 'pips' });
-        if (card.rank === 1) pips.appendChild(h('div', { class: 'pip grande', style: 'left:50%;top:50%', html: SUIT[card.suit] }));
-        else for (const [x, y] of PIP_LAYOUT[card.rank]) pips.appendChild(h('div', { class: 'pip', style: `left:${x}%;top:${y}%`, html: SUIT[card.suit] }));
-        face.appendChild(pips);
-      }
-      kids.push(face);
-    }
-    return h('div', { class: `naipe ${up ? 'boca-arriba' : ''} ${cls}`.trim(), role: 'img', 'aria-label': card && up ? cardName(card) : 'Carta boca abajo' }, h('div', { class: 'naipe-in' }, kids));
-  }
   function cardTags(card) {
     const tags = [];
     if (card.suit === 'bastos' && card.rank === 1) tags.push(h('span', { class: 'sello malo' }, 'As de bastos: −2 vidas'));

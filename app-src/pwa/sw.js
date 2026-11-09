@@ -1,7 +1,8 @@
 // Service worker de La Rata: guarda la app para que abra al instante y funcione el modo de un solo móvil sin conexión.
 // La partida en línea siempre va por la red (WebSocket); esto solo guarda los archivos de la app.
 const CACHE = 'la-rata-__VERSION__';
-const SHELL = ['/', '/una-pantalla.html', '/manifest.webmanifest', '/icono.svg', '/icono-192.png', '/icono-512.png'];
+const CARTAS = ['oros', 'copas', 'espadas', 'bastos'].flatMap((p) => ['01', '02', '03', '04', '05', '06', '07', '10', '11', '12'].map((n) => `/cartas/${p}-${n}.webp`));
+const SHELL = ['/', '/una-pantalla.html', '/manifest.webmanifest', '/icono.svg', '/icono-192.png', '/icono-512.png', ...CARTAS];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
