@@ -1,0 +1,1017 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>La Rata</title>
+<meta name="description" content="Juego de cartas La Rata: cada uno en su móvil y con su carta.">
+<meta name="theme-color" content="#0b2e22">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="La Rata">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icono.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icono-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@500;700;800&family=Alegreya+Sans:wght@400;500;700&display=swap">
+<style>
+
+/* Mesa de tapete vista desde arriba: una sola columna para un móvil que pasa de mano en mano.
+   Mundo visual: tapete verde de bar, naipe Fournier crema con marco rojo, dorso rojo con la rata. */
+:root {
+  --tapete: #0f3b2c;
+  --tapete-hondo: #072318;
+  --tapete-luz: #1c5a42;
+  --naipe: #f4ead3;
+  --naipe-sombra: #e2d3b0;
+  --rojo: #a8231b;
+  --rojo-hondo: #6f140f;
+  --oro: #e0ae4c;
+  --oro-hondo: #9a6a1d;
+  --tinta: #1d1812;
+  --fg: #efe6d0;
+  --muted: #a6b9a8;
+  --linea: rgba(239, 230, 208, 0.14);
+  --bien: #8fd6a0;
+  --mal: #f08a74;
+  --display: "Alegreya SC", "Iowan Old Style", Georgia, serif;
+  --body: "Alegreya Sans", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.4;
+  color: var(--fg);
+  background:
+    radial-gradient(120% 70% at 50% 0%, var(--tapete-luz) 0%, transparent 60%),
+    radial-gradient(140% 100% at 50% 100%, var(--tapete-hondo) 0%, transparent 70%),
+    var(--tapete);
+  background-attachment: fixed;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+/* grano de fieltro */
+body::after {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.35;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .22 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+#app {
+  position: relative; z-index: 1;
+  min-height: 100%;
+  max-width: 520px; margin: 0 auto;
+  display: flex; flex-direction: column;
+  padding-block: 14px 20px;
+}
+.screen { display: flex; flex-direction: column; gap: 18px; flex: 1; animation: entra .35s ease-out both; }
+@keyframes entra { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+h1, h2, h3 { font-family: var(--display); font-weight: 700; margin: 0; text-wrap: balance; letter-spacing: 0.02em; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.small { font-size: 0.88rem; }
+.eyebrow { font-family: var(--display); font-size: 0.82rem; letter-spacing: 0.14em; color: var(--oro); }
+
+/* ---------- botones ---------- */
+button { font: inherit; color: inherit; }
+.btn {
+  appearance: none; border: 1px solid var(--linea); background: rgba(0, 0, 0, 0.22);
+  min-height: 52px; padding: 12px 18px; border-radius: 14px;
+  font-weight: 700; font-size: 1.02rem; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  transition: transform .12s ease, background .2s ease, border-color .2s;
+  touch-action: manipulation; user-select: none; -webkit-user-select: none;
+}
+.btn:active { transform: scale(0.97); }
+.btn:focus-visible { outline: 3px solid var(--oro); outline-offset: 2px; }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn.oro {
+  background: linear-gradient(180deg, #f3cd78, var(--oro) 55%, #c98f2c);
+  color: #24170a; border-color: #f6d998;
+  box-shadow: 0 6px 0 var(--oro-hondo), 0 10px 22px rgba(0, 0, 0, .35);
+}
+.btn.oro:active { transform: translateY(3px); box-shadow: 0 3px 0 var(--oro-hondo), 0 6px 14px rgba(0, 0, 0, .35); }
+.btn.rojo {
+  background: linear-gradient(180deg, #c8372c, var(--rojo)); color: var(--naipe); border-color: #d9574b;
+  box-shadow: 0 6px 0 var(--rojo-hondo), 0 10px 22px rgba(0, 0, 0, .35);
+}
+.btn.rojo:active { transform: translateY(3px); box-shadow: 0 3px 0 var(--rojo-hondo); }
+.btn.fantasma { background: transparent; border-color: transparent; color: var(--muted); min-height: 44px; font-weight: 500; }
+.btn.chico { min-height: 40px; padding: 8px 14px; font-size: .92rem; border-radius: 12px; }
+.btn svg { width: 20px; height: 20px; flex-shrink: 0; }
+.acciones { display: flex; flex-direction: column; gap: 12px; margin-top: auto; }
+
+/* ---------- cabecera ---------- */
+.cabecera { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; }
+.marca { font-family: var(--display); font-weight: 800; font-size: 1.15rem; letter-spacing: .12em; color: var(--oro); display: flex; align-items: center; gap: 8px; }
+.marca svg { width: 30px; height: 20px; }
+.ronda { font-size: .88rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* ---------- configuración ---------- */
+.portada { display: grid; place-items: center; gap: 6px; padding-top: 8px; text-align: center; }
+.abanico { position: relative; width: 210px; height: 150px; margin-bottom: 4px; }
+.abanico .naipe { position: absolute; left: 50%; top: 10px; --w: 86px; transform-origin: 50% 120%; }
+.abanico .naipe:nth-child(1) { transform: translateX(-50%) rotate(-18deg); animation: abre1 .8s .1s cubic-bezier(.2,.9,.2,1) both; }
+.abanico .naipe:nth-child(2) { transform: translateX(-50%) rotate(0deg); animation: abre2 .8s .1s cubic-bezier(.2,.9,.2,1) both; }
+.abanico .naipe:nth-child(3) { transform: translateX(-50%) rotate(18deg); animation: abre3 .8s .1s cubic-bezier(.2,.9,.2,1) both; }
+@keyframes abre1 { from { transform: translateX(-50%) rotate(0); } }
+@keyframes abre2 { from { transform: translateX(-50%) translateY(6px); } }
+@keyframes abre3 { from { transform: translateX(-50%) rotate(0); } }
+.titulo { font-size: clamp(2.8rem, 13vw, 3.8rem); font-weight: 800; letter-spacing: .08em; line-height: 1; color: var(--naipe); text-shadow: 0 3px 0 var(--rojo-hondo), 0 8px 24px rgba(0,0,0,.45); }
+
+.bloque { display: flex; flex-direction: column; gap: 10px; }
+.bloque > label, .etiqueta { font-family: var(--display); font-size: .85rem; letter-spacing: .12em; color: var(--oro); }
+.fichas { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.ficha {
+  appearance: none; min-height: 46px; border-radius: 50%; aspect-ratio: 1; max-width: 100%;
+  border: 2px dashed rgba(239, 230, 208, .28); background: rgba(0,0,0,.2);
+  font-family: var(--display); font-weight: 800; font-size: 1.15rem; cursor: pointer;
+  display: grid; place-items: center; padding: 0;
+}
+.ficha[aria-pressed="true"] { background: radial-gradient(circle at 35% 30%, #f6d58a, var(--oro) 60%, #b07a22); color: #24170a; border: 2px solid #f6d998; box-shadow: 0 3px 0 var(--oro-hondo); }
+.ficha:focus-visible { outline: 3px solid var(--oro); outline-offset: 2px; }
+
+.nombres { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.campo { position: relative; }
+.campo input, .campo select, select.campo {
+  width: 100%; min-height: 48px; padding: 10px 12px 10px 40px; font: inherit; font-size: 16px;
+  color: var(--fg); background: rgba(0, 0, 0, .28); border: 1px solid var(--linea); border-radius: 12px;
+}
+.campo input:focus, select:focus { outline: 2px solid var(--oro); outline-offset: 1px; }
+.campo .num { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: .75rem; font-weight: 700; background: var(--naipe); color: var(--tinta); }
+select.campo { padding-left: 12px; }
+
+.ajustes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.contador { display: flex; align-items: center; justify-content: space-between; gap: 6px; background: rgba(0,0,0,.22); border: 1px solid var(--linea); border-radius: 14px; padding: 6px; }
+.contador button { appearance: none; width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--linea); background: rgba(255,255,255,.05); font-size: 1.3rem; font-weight: 700; cursor: pointer; }
+.contador output { font-family: var(--display); font-size: 1.5rem; font-weight: 800; font-variant-numeric: tabular-nums; min-width: 2ch; text-align: center; }
+.contador-caja { display: flex; flex-direction: column; gap: 6px; }
+.contador-caja .etiqueta { font-size: .75rem; }
+
+details.reglas { border: 1px solid var(--linea); border-radius: 14px; padding: 12px 14px; background: rgba(0,0,0,.16); }
+details.reglas summary { cursor: pointer; font-family: var(--display); letter-spacing: .1em; color: var(--oro); }
+details.reglas ul { margin: 10px 0 0; padding-left: 18px; display: grid; gap: 6px; font-size: .95rem; }
+
+/* ---------- naipe ---------- */
+.naipe {
+  --w: 90px;
+  width: var(--w); height: calc(var(--w) * 1.55);
+  perspective: 900px; flex-shrink: 0; position: relative;
+}
+.naipe-in { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform .6s cubic-bezier(.3,.7,.2,1); }
+.naipe.boca-arriba .naipe-in { transform: rotateY(180deg); }
+.cara, .dorso {
+  position: absolute; inset: 0; border-radius: calc(var(--w) * .08);
+  backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow: hidden;
+  box-shadow: 0 calc(var(--w) * .05) calc(var(--w) * .14) rgba(0, 0, 0, .45), 0 0 0 1px rgba(0,0,0,.25);
+}
+.dorso {
+  background:
+    repeating-linear-gradient(45deg, rgba(255,214,190,.13) 0 2px, transparent 2px 9px),
+    repeating-linear-gradient(-45deg, rgba(255,214,190,.13) 0 2px, transparent 2px 9px),
+    radial-gradient(circle at 50% 50%, #c0302a, #8f1913 75%);
+  border: calc(var(--w) * .045) solid var(--naipe);
+  display: grid; place-items: center;
+}
+.dorso::before { content: ""; position: absolute; inset: calc(var(--w) * .04); border: 1px solid rgba(244,234,211,.6); border-radius: calc(var(--w) * .05); }
+.dorso .ovalo { width: 62%; aspect-ratio: .78; border-radius: 50%; background: var(--rojo-hondo); border: 2px solid var(--naipe); display: grid; place-items: center; box-shadow: 0 0 0 3px #8f1913, 0 0 0 4px rgba(244,234,211,.5); }
+.dorso .ovalo svg { width: 78%; }
+.cara { transform: rotateY(180deg); background: linear-gradient(165deg, #fbf4e2, var(--naipe) 55%, var(--naipe-sombra)); color: var(--tinta); }
+/* marco rojo con la "pinta": cortes que indican el palo (copas 1, espadas 2, bastos 3, oros ninguno) */
+.marco { position: absolute; inset: calc(var(--w) * .07); border: max(1.5px, calc(var(--w) * .014)) solid var(--rojo); border-radius: calc(var(--w) * .03); }
+.pinta { position: absolute; height: calc(var(--w) * .06); width: calc(var(--w) * .07); background: var(--naipe); }
+.pinta.arriba { top: calc(var(--w) * .045); }
+.pinta.abajo { bottom: calc(var(--w) * .045); }
+.indice { position: absolute; font-family: var(--display); font-weight: 800; font-size: calc(var(--w) * .2); line-height: 1; color: var(--tinta); }
+.indice.ar { top: calc(var(--w) * .1); left: calc(var(--w) * .11); }
+.indice.ab { bottom: calc(var(--w) * .1); right: calc(var(--w) * .11); transform: rotate(180deg); }
+.pips { position: absolute; inset: calc(var(--w) * .2) calc(var(--w) * .16); }
+.pip { position: absolute; width: calc(var(--w) * .3); transform: translate(-50%, -50%); }
+.pip svg, .emblema svg { display: block; width: 100%; height: auto; }
+.pip.grande { width: calc(var(--w) * .58); }
+.figura { position: absolute; inset: calc(var(--w) * .2) calc(var(--w) * .14); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--w) * .04); border: 1px solid rgba(168,35,27,.35); border-radius: calc(var(--w) * .04); background: linear-gradient(180deg, rgba(224,174,76,.18), rgba(168,35,27,.08)); }
+.figura .emblema { width: calc(var(--w) * .34); }
+.figura .palo { width: calc(var(--w) * .34); }
+.figura .nombre { font-family: var(--display); font-weight: 800; font-size: calc(var(--w) * .12); letter-spacing: .08em; color: var(--rojo); }
+.naipe.brilla .cara { box-shadow: 0 0 0 calc(var(--w) * .03) var(--oro), 0 0 calc(var(--w) * .35) rgba(224,174,76,.75); }
+.naipe.apagada { filter: saturate(.4) brightness(.8); }
+
+/* ---------- pasar el móvil ---------- */
+.pasa { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; padding-top: 10px; }
+.pasa .moneda { width: 96px; height: 96px; border-radius: 50%; display: grid; place-items: center; font-family: var(--display); font-weight: 800; font-size: 2.6rem; color: #24170a; background: radial-gradient(circle at 35% 30%, #f8dc98, var(--oro) 60%, #a8721e); box-shadow: inset 0 0 0 4px rgba(255,255,255,.25), inset 0 0 0 8px rgba(154,106,29,.6), 0 10px 30px rgba(0,0,0,.45); animation: late 2.2s ease-in-out infinite; }
+@keyframes late { 50% { transform: translateY(-4px) rotate(-3deg); } }
+.pasa .quien { font-size: clamp(2rem, 10vw, 2.8rem); color: var(--naipe); line-height: 1.05; overflow-wrap: anywhere; }
+.aviso-privado { display: flex; gap: 10px; align-items: center; justify-content: center; font-size: .92rem; color: var(--muted); }
+.aviso-privado svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+.orden { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.turno-ficha { display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 999px; background: rgba(0,0,0,.25); border: 1px solid var(--linea); font-size: .9rem; max-width: 100%; }
+.turno-ficha .ini { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: rgba(239,230,208,.14); font-weight: 700; font-size: .8rem; flex-shrink: 0; }
+.turno-ficha .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 9ch; }
+.turno-ficha .vidas { color: var(--mal); font-weight: 700; font-variant-numeric: tabular-nums; }
+.turno-ficha .hizo { font-size: .76rem; color: var(--muted); }
+.turno-ficha.ahora { border-color: var(--oro); background: rgba(224,174,76,.16); box-shadow: 0 0 0 3px rgba(224,174,76,.18); }
+.turno-ficha.ahora .ini { background: var(--oro); color: #24170a; }
+.turno-ficha.hecho { opacity: .65; }
+.turno-ficha.pelle .ini { box-shadow: 0 0 0 2px var(--mal); }
+
+/* ---------- turno ---------- */
+.mesa { position: relative; display: grid; place-items: center; padding: 8px 0 4px; min-height: 0; }
+.mesa .naipe { --w: min(58vw, 230px); }
+.mesa .halo { position: absolute; width: 80%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(224,174,76,.22), transparent 65%); pointer-events: none; }
+.leyenda { text-align: center; display: flex; flex-direction: column; gap: 6px; align-items: center; min-height: 3.4em; }
+.leyenda .carta-nombre { font-family: var(--display); font-size: 1.5rem; color: var(--naipe); }
+.sello { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: .84rem; font-weight: 700; }
+.sello.malo { background: rgba(240,138,116,.16); color: var(--mal); border: 1px solid rgba(240,138,116,.4); }
+.sello.bueno { background: rgba(143,214,160,.14); color: var(--bien); border: 1px solid rgba(143,214,160,.4); }
+.sello.oro { background: rgba(224,174,76,.16); color: var(--oro); border: 1px solid rgba(224,174,76,.45); }
+
+.banner-cambio {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px;
+  background: linear-gradient(90deg, rgba(168,35,27,.55), rgba(168,35,27,.2)); border: 1px solid rgba(240,138,116,.45);
+  animation: cae .55s cubic-bezier(.2,1.3,.4,1) both;
+}
+.banner-cambio svg { width: 28px; height: 28px; flex-shrink: 0; color: var(--oro); }
+.banner-cambio strong { color: var(--naipe); }
+@keyframes cae { from { opacity: 0; transform: translateY(-16px) scale(.96); } }
+
+.duo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ---------- revelar ---------- */
+.resultado { text-align: center; display: flex; flex-direction: column; gap: 6px; align-items: center; }
+.resultado h2 { font-size: 1.9rem; color: var(--naipe); }
+.rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 14px 10px; justify-items: center; }
+.asiento { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; min-width: 0; width: 100%; position: relative; }
+.asiento .naipe { --w: 74px; }
+.asiento .nm { font-weight: 700; font-size: .92rem; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.asiento .delta { font-family: var(--display); font-weight: 800; font-size: 1.05rem; font-variant-numeric: tabular-nums; min-height: 1.3em; }
+.asiento .delta.menos { color: var(--mal); }
+.asiento .delta.mas { color: var(--bien); }
+.asiento .fuera { font-size: .74rem; letter-spacing: .1em; color: var(--mal); font-family: var(--display); }
+.asiento .corona { position: absolute; top: -14px; width: 30px; color: var(--oro); filter: drop-shadow(0 2px 4px rgba(0,0,0,.5)); }
+.flota { animation: flota 1.4s ease-out both; }
+@keyframes flota { 0% { opacity: 0; transform: translateY(10px) scale(.7); } 25% { opacity: 1; transform: translateY(0) scale(1.15); } 100% { opacity: 1; transform: none; } }
+.cronica { border-top: 1px solid var(--linea); padding-top: 12px; display: grid; gap: 4px; font-size: .9rem; color: var(--muted); }
+.cronica b { color: var(--fg); font-weight: 700; }
+
+/* ---------- final ---------- */
+.final { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; padding-top: 18px; }
+.final .corona-grande { width: 92px; color: var(--oro); animation: corona 1.2s cubic-bezier(.2,1.4,.4,1) both; filter: drop-shadow(0 6px 16px rgba(0,0,0,.5)); }
+@keyframes corona { from { transform: translateY(-30px) rotate(-12deg) scale(.6); opacity: 0; } }
+.final .ganador { font-size: clamp(2.4rem, 12vw, 3.4rem); color: var(--naipe); overflow-wrap: anywhere; }
+.clasif { width: 100%; display: grid; gap: 6px; }
+.clasif .fila { display: flex; justify-content: space-between; gap: 10px; padding: 10px 14px; border-radius: 12px; background: rgba(0,0,0,.22); }
+.clasif .fila.primero { background: rgba(224,174,76,.16); border: 1px solid rgba(224,174,76,.4); }
+.confeti { position: fixed; inset: 0; pointer-events: none; z-index: 5; overflow: hidden; }
+.confeti i { position: absolute; top: -20px; width: 10px; height: 16px; border-radius: 2px; animation: lluvia linear forwards; }
+@keyframes lluvia { to { transform: translateY(110vh) rotate(720deg); } }
+
+/* ---------- hoja (marcador) y diálogo ---------- */
+.velo { position: fixed; inset: 0; background: rgba(2, 10, 7, .72); z-index: 20; display: flex; align-items: flex-end; justify-content: center; animation: aparece .2s ease-out both; }
+@keyframes aparece { from { opacity: 0; } }
+.hoja {
+  width: 100%; max-width: 560px; max-height: 86%; overflow-y: auto;
+  background: #0b2a1f; border: 1px solid var(--linea); border-bottom: 0; border-radius: 22px 22px 0 0;
+  padding: 18px max(18px, env(safe-area-inset-left, 0px)) calc(22px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 16px; animation: sube .3s cubic-bezier(.2,.9,.2,1) both;
+}
+@keyframes sube { from { transform: translateY(100%); } }
+.hoja-cab { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.jugadores { display: grid; gap: 8px; }
+.jug { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: rgba(0,0,0,.25); }
+.jug .nm { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.jug .vidas { color: var(--mal); font-weight: 700; font-variant-numeric: tabular-nums; }
+.jug.fuera { opacity: .5; }
+.toggle { appearance: none; border: 1px solid var(--linea); background: transparent; border-radius: 999px; padding: 6px 12px; font-size: .85rem; font-weight: 700; cursor: pointer; min-height: 36px; }
+.toggle[aria-pressed="true"] { background: rgba(240,138,116,.2); border-color: var(--mal); color: var(--mal); }
+.historia { display: grid; gap: 10px; }
+.historia .ent { padding: 10px 12px; border-radius: 12px; border: 1px solid var(--linea); font-size: .9rem; display: grid; gap: 4px; }
+.historia .ent h3 { font-size: 1rem; color: var(--oro); }
+.dialogo { margin: auto 16px; max-width: 400px; width: 100%; background: #0b2a1f; border: 1px solid var(--linea); border-radius: 20px; padding: 20px; display: grid; gap: 16px; text-align: center; animation: entra .25s ease-out both; }
+.velo.centro { align-items: center; }
+
+.toast { position: fixed; left: 50%; top: calc(14px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); z-index: 40; background: #1c130d; border: 1px solid var(--mal); color: var(--naipe); padding: 10px 16px; border-radius: 12px; max-width: calc(100% - 32px); text-align: center; animation: entra .2s ease-out both; }
+
+@media (max-width: 360px) {
+  .nombres, .ajustes { grid-template-columns: 1fr; }
+  .fichas { grid-template-columns: repeat(4, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0ms !important; transition-duration: .01ms !important; }
+}
+
+
+/* ---------- app con servidor ---------- */
+html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.campo-solo input { padding-left: 14px; }
+.codigo-input { text-transform: uppercase; letter-spacing: .35em; text-align: center; font-family: var(--display); font-weight: 800; font-size: 22px !important; }
+.unirse { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.unirse input { width: 100%; min-width: 0; min-height: 52px; font: inherit; color: var(--fg); background: rgba(0, 0, 0, .28); border: 1px solid var(--linea); border-radius: 12px; padding: 10px 12px; }
+.unirse input:focus { outline: 2px solid var(--oro); outline-offset: 1px; }
+.separador { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: .85rem; }
+.separador::before, .separador::after { content: ""; flex: 1; height: 1px; background: var(--linea); }
+.codigo-sala { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px; border-radius: 18px; background: rgba(0,0,0,.25); border: 1px dashed rgba(224,174,76,.5); }
+.codigo-sala .letras { font-family: var(--display); font-weight: 800; font-size: 2.6rem; letter-spacing: .3em; color: var(--naipe); padding-left: .3em; }
+.sala-lista { display: grid; gap: 8px; }
+.sala-fila { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 14px; background: rgba(0,0,0,.24); border: 1px solid var(--linea); }
+.sala-fila .asiento-n { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-family: var(--display); font-weight: 800; background: var(--naipe); color: var(--tinta); }
+.sala-fila .nm { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.sala-fila .tu { color: var(--oro); font-weight: 500; font-size: .85rem; }
+.sala-fila .ctrl { display: flex; gap: 4px; }
+.sala-fila .ctrl button { appearance: none; width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--linea); background: rgba(255,255,255,.05); cursor: pointer; font-weight: 700; }
+.sala-fila .ctrl button:disabled { opacity: .3; }
+.sala-fila.desconectado { opacity: .5; }
+.nota { font-size: .9rem; color: var(--muted); border-left: 3px solid var(--oro); padding-left: 10px; }
+.puntos::after { content: ""; animation: puntos 1.4s steps(4) infinite; }
+@keyframes puntos { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
+.estado-turno { text-align: center; font-size: 1.05rem; }
+.estado-turno b { color: var(--oro); }
+.mesa .naipe { --w: min(54vw, 220px, 27dvh); }
+.mesa .naipe.toca { cursor: pointer; }
+.pista { text-align: center; font-size: .8rem; color: var(--muted); }
+.banner-cambio.mio { background: linear-gradient(90deg, rgba(224,174,76,.35), rgba(224,174,76,.1)); border-color: rgba(224,174,76,.5); }
+.espectador { text-align: center; padding: 30px 0; display: grid; gap: 10px; justify-items: center; }
+.anfitrion-extra { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.conexion { position: fixed; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); z-index: 30; background: rgba(168,35,27,.92); color: var(--naipe); padding: 6px 14px; border-radius: 999px; font-size: .85rem; }
+.instalar { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; background: rgba(224,174,76,.12); border: 1px solid rgba(224,174,76,.4); }
+.instalar p { flex: 1; font-size: .92rem; }
+.turno-ficha.off { opacity: .45; }
+.enlace { display: block; text-align: center; color: var(--muted); font-size: .9rem; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<noscript><p style="padding:24px">La Rata necesita JavaScript activado.</p></noscript>
+<script>
+(() => {
+  'use strict';
+
+  const reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const KEY_NAME = 'larata-nombre';
+  const KEY_SESSION = 'larata-sesion';
+
+  // ---------- dibujos (SVG fijos, nunca datos del usuario) ----------
+  const SUIT = {
+    oros: '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#e3b24c" stroke="#8a5a12" stroke-width="2"/><circle cx="20" cy="20" r="11.5" fill="none" stroke="#8a5a12" stroke-width="1.6"/><circle cx="20" cy="20" r="7" fill="#f3d58a" stroke="#b07a22" stroke-width="1.2"/><circle cx="20" cy="20" r="2.6" fill="#a8231b"/></svg>',
+    copas: '<svg viewBox="0 0 40 40"><rect x="8" y="4" width="24" height="3.4" rx="1.7" fill="#e0ae4c" stroke="#8a5a12" stroke-width="1"/><path d="M9.5 7h21c0 9.5-4.2 15-10.5 15.6C13.7 22 9.5 16.5 9.5 7z" fill="#b3261e" stroke="#6e140f" stroke-width="1.5"/><path d="M13 9.5c.4 5 2.4 8.6 5.4 9.6" stroke="#f08a74" stroke-width="1.4" fill="none" stroke-linecap="round"/><rect x="18" y="22.5" width="4" height="7.5" fill="#e0ae4c" stroke="#8a5a12" stroke-width="1"/><path d="M11 36h18l-3.4-6H14.4z" fill="#e0ae4c" stroke="#8a5a12" stroke-width="1.2"/></svg>',
+    espadas: '<svg viewBox="0 0 40 40"><path d="M20 1.5l3.6 6.5v19h-7.2V8z" fill="#d3dbe6" stroke="#2c4f8c" stroke-width="1.5"/><path d="M20 5v21" stroke="#2c4f8c" stroke-width="1" opacity=".6"/><path d="M8.5 26.5h23l-2 3.6h-19z" fill="#2c4f8c" stroke="#1a2f55" stroke-width="1"/><rect x="18" y="30" width="4" height="5.5" fill="#e0ae4c" stroke="#8a5a12" stroke-width="1"/><circle cx="20" cy="37.2" r="2.4" fill="#2c4f8c"/></svg>',
+    bastos: '<svg viewBox="0 0 40 40"><path d="M16.5 38l-2.6-25.5C13.4 6.6 16.6 2 21 2c4.3 0 6.8 4.3 5.8 9.8L22.5 38z" fill="#a36a33" stroke="#5a3511" stroke-width="1.6"/><path d="M18 9c1-2 2.6-3 4.2-3" stroke="#d29a5e" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="15.4" cy="14" r="2.3" fill="#3d7a33" stroke="#22501c" stroke-width=".8"/><circle cx="25.4" cy="18.5" r="2.3" fill="#3d7a33" stroke="#22501c" stroke-width=".8"/><circle cx="16.6" cy="24.5" r="2" fill="#3d7a33" stroke="#22501c" stroke-width=".8"/><circle cx="23.6" cy="29" r="1.8" fill="#3d7a33" stroke="#22501c" stroke-width=".8"/></svg>',
+  };
+  const RAT = '<svg viewBox="0 0 64 40" aria-hidden="true"><path d="M8 33c-6 1-7-5-2-7" stroke="#f4ead3" stroke-width="2.2" fill="none" stroke-linecap="round"/><ellipse cx="27" cy="25" rx="18" ry="10.5" fill="#f4ead3"/><path d="M40 17c6-3 13-1 18 6-4 3-11 5-18 3z" fill="#f4ead3"/><circle cx="41" cy="13.5" r="5" fill="#f4ead3"/><circle cx="41" cy="13.5" r="2.4" fill="#e6a49b"/><circle cx="50" cy="20" r="1.5" fill="#6f140f"/><circle cx="58.5" cy="23" r="1.6" fill="#e6a49b"/><path d="M57 24l5 1M57 25l4.5 3" stroke="#f4ead3" stroke-width=".9" stroke-linecap="round"/><path d="M20 34l-2 4M34 34l1 4" stroke="#f4ead3" stroke-width="2.4" stroke-linecap="round"/></svg>';
+  const RAT_SMALL = RAT.replace(/#f4ead3/g, '#e0ae4c');
+  const CROWN = '<svg viewBox="0 0 48 36" aria-hidden="true"><path d="M4 30L2 8l11 9 11-15 11 15 11-9-2 22z" fill="currentColor" stroke="#7a4f12" stroke-width="2" stroke-linejoin="round"/><rect x="4" y="29" width="40" height="5" rx="2" fill="currentColor" stroke="#7a4f12" stroke-width="2"/><circle cx="24" cy="21" r="3" fill="#a8231b"/><circle cx="13" cy="23" r="2" fill="#2c4f8c"/><circle cx="35" cy="23" r="2" fill="#2c4f8c"/></svg>';
+  const EMBLEM = {
+    10: '<svg viewBox="0 0 40 40"><path d="M8 16c4-8 20-8 24 0-6-2-18-2-24 0z" fill="#a8231b" stroke="#6e140f" stroke-width="1.2"/><path d="M30 14c4-6 7-9 8-12-1 6-3 10-6 13z" fill="#e0ae4c" stroke="#8a5a12" stroke-width="1"/><circle cx="20" cy="25" r="8" fill="#f1c9a5" stroke="#8a5a12" stroke-width="1.2"/><path d="M14 38c0-5 3-7 6-7s6 2 6 7z" fill="#2c4f8c"/></svg>',
+    11: '<svg viewBox="0 0 40 40"><path d="M10 38c-1-9 1-16 6-21l-3-6 6 3c3-4 9-6 13-4-2 2-2 4-1 6 3 3 3 7 0 9l-5-2c-2 4-2 9-1 15z" fill="#8a5a33" stroke="#4a2a10" stroke-width="1.3" stroke-linejoin="round"/><circle cx="27" cy="13" r="1.4" fill="#1d1812"/><path d="M17 15c-2 4-3 8-3 12" stroke="#e0ae4c" stroke-width="2" fill="none" stroke-linecap="round"/></svg>',
+    12: CROWN.replace('currentColor', '#e0ae4c').replace('currentColor', '#e0ae4c'),
+  };
+  const ICON = {
+    cambio: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>',
+    ojo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 3l18 18M10.6 6.1A9.8 9.8 0 0 1 12 6c5 0 8.5 4 9.5 6-.5 1-1.5 2.4-2.9 3.6M6.6 7.6C4.6 8.9 3.2 10.7 2.5 12c1 2 4.5 6 9.5 6 1.6 0 3-.4 4.3-1"/></svg>',
+    mano: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 11V5a2 2 0 0 1 4 0v5M11 10V4a2 2 0 0 1 4 0v6M15 10V6a2 2 0 0 1 4 0v8a7 7 0 0 1-7 7h-1a7 7 0 0 1-6-3.4L3 14a2 2 0 0 1 3.4-2L7 13"/></svg>',
+    baraja: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="3" width="12" height="16" rx="2"/><path d="M5 6v13a2 2 0 0 0 2 2h9"/><path d="M13 8v6M10 11h6"/></svg>',
+    quedar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>',
+  };
+
+  // Posiciones (% del recuadro) de los palos en las cartas de número, como en la baraja española.
+  const PIP_LAYOUT = {
+    2: [[50, 18], [50, 82]],
+    3: [[50, 15], [50, 50], [50, 85]],
+    4: [[28, 20], [72, 20], [28, 80], [72, 80]],
+    5: [[28, 18], [72, 18], [50, 50], [28, 82], [72, 82]],
+    6: [[28, 15], [72, 15], [28, 50], [72, 50], [28, 85], [72, 85]],
+    7: [[28, 13], [72, 13], [50, 34], [28, 56], [72, 56], [28, 87], [72, 87]],
+  };
+  const PINTA_CORTES = { oros: 0, copas: 1, espadas: 2, bastos: 3 };
+  const RANK_NAME = { 1: 'As', 10: 'Sota', 11: 'Caballo', 12: 'Rey' };
+
+
+
+  const SUIT_CODE = { o: 'oros', c: 'copas', e: 'espadas', b: 'bastos' };
+  const dec = (s) => (s ? { rank: parseInt(s, 10), suit: SUIT_CODE[s.slice(-1)] } : null);
+  const cardName = (c) => `${RANK_NAME[c.rank] || c.rank} de ${c.suit}`;
+
+  // ---------- utilidades ----------
+  function h(tag, attrs, ...kids) {
+    const n = document.createElement(tag);
+    if (attrs) {
+      for (const [k, v] of Object.entries(attrs)) {
+        if (v === null || v === undefined || v === false) continue;
+        if (k === 'class') n.className = v;
+        else if (k === 'html') n.innerHTML = v; // solo SVG fijos de este archivo
+        else if (k === 'tap') onTap(n, v);
+        else if (k === 'style') n.style.cssText = v;
+        else n.setAttribute(k, v === true ? '' : v);
+      }
+    }
+    for (const kid of kids.flat()) {
+      if (kid === null || kid === undefined || kid === false) continue;
+      n.appendChild(typeof kid === 'string' || typeof kid === 'number' ? document.createTextNode(String(kid)) : kid);
+    }
+    return n;
+  }
+  /** Toque fiable en Android: dispara al levantar el dedo y no repite con el clic. */
+  function onTap(el, fn) {
+    let last = 0;
+    el.addEventListener('pointerup', (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      if (el.disabled) return;
+      last = Date.now(); fn(e);
+    });
+    el.addEventListener('click', (e) => { if (Date.now() - last < 700 || el.disabled) return; fn(e); });
+  }
+  const wait = (ms) => new Promise((r) => setTimeout(r, reduceMotion ? 0 : ms));
+  function anim(el, frames, opts) {
+    if (!el || !el.animate || reduceMotion) return Promise.resolve();
+    return el.animate(frames, Object.assign({ duration: 400, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'forwards' }, opts)).finished.catch(() => {});
+  }
+  function vibrate(p) { try { navigator.vibrate && navigator.vibrate(p); } catch (_) { /* sin vibración */ } }
+  function toast(text) {
+    document.querySelectorAll('.toast').forEach((t) => t.remove());
+    const t = h('div', { class: 'toast', role: 'status' }, text);
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3500);
+  }
+  const store = {
+    get(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (_) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_) { /* sin almacenamiento */ } },
+    del(k) { try { localStorage.removeItem(k); } catch (_) { /* sin almacenamiento */ } },
+  };
+
+  function naipe(card, { up = false, cls = '' } = {}) {
+    const kids = [h('div', { class: 'dorso' }, h('div', { class: 'ovalo', html: RAT }))];
+    if (card) {
+      const face = h('div', { class: 'cara' }, h('div', { class: 'marco' }));
+      for (let i = 0; i < PINTA_CORTES[card.suit]; i++) {
+        const pos = `${30 + i * 14}%`;
+        face.appendChild(h('span', { class: 'pinta arriba', style: `left:${pos}` }));
+        face.appendChild(h('span', { class: 'pinta abajo', style: `right:${pos}` }));
+      }
+      face.appendChild(h('span', { class: 'indice ar' }, String(card.rank)));
+      face.appendChild(h('span', { class: 'indice ab' }, String(card.rank)));
+      if (card.rank >= 10) {
+        face.appendChild(h('div', { class: 'figura' },
+          h('div', { class: 'emblema', html: EMBLEM[card.rank] }),
+          h('div', { class: 'palo', html: SUIT[card.suit] }),
+          h('div', { class: 'nombre' }, RANK_NAME[card.rank].toUpperCase())));
+      } else {
+        const pips = h('div', { class: 'pips' });
+        if (card.rank === 1) pips.appendChild(h('div', { class: 'pip grande', style: 'left:50%;top:50%', html: SUIT[card.suit] }));
+        else for (const [x, y] of PIP_LAYOUT[card.rank]) pips.appendChild(h('div', { class: 'pip', style: `left:${x}%;top:${y}%`, html: SUIT[card.suit] }));
+        face.appendChild(pips);
+      }
+      kids.push(face);
+    }
+    return h('div', { class: `naipe ${up ? 'boca-arriba' : ''} ${cls}`.trim(), role: 'img', 'aria-label': card && up ? cardName(card) : 'Carta boca abajo' }, h('div', { class: 'naipe-in' }, kids));
+  }
+  function cardTags(card) {
+    const tags = [];
+    if (card.suit === 'bastos' && card.rank === 1) tags.push(h('span', { class: 'sello malo' }, 'As de bastos: −2 vidas'));
+    if (card.suit === 'bastos' && card.rank === 12) tags.push(h('span', { class: 'sello bueno' }, 'Rey de bastos: +1 vida'));
+    return tags;
+  }
+
+  // =====================================================================
+  //  CONEXIÓN CON EL SERVIDOR
+  // =====================================================================
+  let ws = null;
+  let connected = false;
+  let everConnected = false;
+  let retryMs = 800;
+  let session = store.get(KEY_SESSION); // { code, token, playerId }
+  let resuming = false;
+  let snap = null;
+  let myName = store.get(KEY_NAME) || '';
+  let pending = null; // acción enviada esperando respuesta
+
+  function connect() {
+    const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+    try { ws = new WebSocket(`${proto}://${location.host}/ws`); } catch (_) { scheduleReconnect(); return; }
+    ws.onopen = () => {
+      connected = true; everConnected = true; retryMs = 800;
+      if (session) { resuming = true; send({ type: 'resume', code: session.code, token: session.token }); }
+      render();
+    };
+    ws.onmessage = (e) => { let m; try { m = JSON.parse(e.data); } catch (_) { return; } onMessage(m); };
+    ws.onclose = () => { connected = false; renderConnection(); scheduleReconnect(); };
+    ws.onerror = () => {};
+  }
+  function scheduleReconnect() {
+    setTimeout(connect, retryMs);
+    retryMs = Math.min(retryMs * 1.7, 8000);
+  }
+  // Al volver a la app (móvil bloqueado, cambio de app), reconecta enseguida.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && ws && ws.readyState > 1) { retryMs = 400; connect(); }
+  });
+
+  function send(msg) {
+    if (!ws || ws.readyState !== 1) { toast('Sin conexión con el servidor. Reintentando…'); return false; }
+    ws.send(JSON.stringify(msg));
+    return true;
+  }
+  function act(type, extra) {
+    if (pending) return;
+    if (!send(Object.assign({ type }, extra || {}))) return;
+    pending = type;
+    render();
+    setTimeout(() => { if (pending === type) { pending = null; render(); } }, 6000);
+  }
+
+  function onMessage(m) {
+    if (m.type === 'joined') {
+      resuming = false;
+      session = { code: m.code, token: m.token, playerId: m.playerId };
+      store.set(KEY_SESSION, session);
+      history.replaceState(null, '', `/?sala=${m.code}`);
+      return;
+    }
+    if (m.type === 'state') { pending = null; receive(m.snap); return; }
+    if (m.type === 'kicked') { leaveRoom(); toast('La mesa te ha sacado de la sala.'); return; }
+    if (m.type === 'error') {
+      pending = null;
+      if (resuming) { resuming = false; leaveRoom(); toast('Esa partida ya no existe. Entra en una sala nueva.'); return; }
+      toast(m.message);
+      render();
+    }
+  }
+
+  function leaveRoom() {
+    session = null; snap = null; store.del(KEY_SESSION);
+    history.replaceState(null, '', '/');
+    resetAnimState();
+    render();
+  }
+
+  // =====================================================================
+  //  ESTADO Y ANIMACIONES
+  // =====================================================================
+  let shownCard = null;
+  let banner = null;
+  let cardHidden = false;
+  let animating = false;
+  let queued = false;
+  let showWinner = false;
+  let overTimer = null;
+  let sheet = null;
+  let lastTurnBuzz = '';
+
+  function resetAnimState() { shownCard = null; banner = null; cardHidden = false; showWinner = false; clearTimeout(overTimer); overTimer = null; sheet = null; }
+
+  const me = () => (snap ? snap.me : null);
+  const isHost = () => !!snap && snap.host === snap.me;
+  const P = (pid) => (snap && snap.pl ? snap.pl.find((x) => x.p === pid) : null);
+  const nameOf = (pid) => {
+    const p = P(pid) || (snap && snap.lobby ? snap.lobby.find((x) => x.p === pid) : null);
+    return p ? p.n : '—';
+  };
+  const myCard = (s) => (s && s.c && s.c[s.me] ? dec(s.c[s.me]) : null);
+
+  function receive(b) {
+    if (!b || typeof b !== 'object') return;
+    const a = snap;
+    if (a && a.sid === b.sid && b.v < a.v) return;
+    snap = b;
+    if (b.k !== 'juego' || b.ph !== 'over') { showWinner = false; clearTimeout(overTimer); overTimer = null; }
+    if (b.k !== 'juego') { banner = null; shownCard = null; render(); return; }
+
+    const sameRound = a && a.k === 'juego' && a.sid === b.sid && a.r === b.r;
+    const newActs = sameRound ? b.ac.slice(a.ac.length) : [];
+    let effect = null;
+    if (!sameRound && b.ph === 'turns') { effect = 'reparto'; banner = null; cardHidden = false; }
+    for (const [type, pid, other] of newActs) {
+      if (type === 'swap' && pid === b.me) { effect = 'cambio-mio'; banner = { kind: 'cambiado', other }; }
+      else if (type === 'swap' && other === b.me) { effect = 'cambio-recibido'; banner = { kind: 'recibido', other: pid }; }
+      else if (type === 'draw' && pid === b.me) { effect = 'levanto'; banner = { kind: 'levantado' }; }
+    }
+    if (b.ph !== 'turns') banner = null;
+    const oldCard = shownCard;
+    const newCard = myCard(b);
+    shownCard = newCard;
+    const revealAnim = b.ph !== 'turns' && (!a || a.k !== 'juego' || a.ph === 'turns' || a.r !== b.r || a.sid !== b.sid);
+    render({ effect: effect && newCard ? effect : null, oldCard, revealAnim });
+  }
+
+  // =====================================================================
+  //  PANTALLAS
+  // =====================================================================
+  const app = document.getElementById('app');
+
+  function render(fx = {}) {
+    if (animating) { queued = true; return; }
+    const focused = document.activeElement && document.activeElement.id;
+    const sel = focused && document.activeElement.selectionStart;
+    app.replaceChildren(pickScreen()(fx));
+    if (focused) {
+      const el = document.getElementById(focused);
+      if (el) { el.focus(); try { el.setSelectionRange(sel, sel); } catch (_) { /* no es texto */ } }
+    }
+    renderSheet();
+    renderConnection();
+  }
+
+  function pickScreen() {
+    if (!everConnected) return screenConnecting;
+    if (!snap) return session && resuming ? screenConnecting : screenHome;
+    if (snap.k === 'sala') return screenLobby;
+    if (snap.ph === 'turns') return screenTurns;
+    if (snap.ph === 'reveal') return (fx) => revealScreen(fx, false);
+    return screenOver;
+  }
+
+  function cabecera(extra) {
+    return h('header', { class: 'cabecera' },
+      h('div', { class: 'marca', html: RAT_SMALL }),
+      h('span', { class: 'ronda' }, extra || ''),
+      snap && snap.k === 'juego' ? h('button', { class: 'btn chico', tap: () => { sheet = 'marcador'; renderSheet(); } }, 'Marcador')
+        : snap ? h('button', { class: 'btn chico fantasma', tap: () => { sheet = 'salir'; renderSheet(); } }, 'Salir') : null);
+  }
+
+  function screenConnecting() {
+    return h('section', { class: 'screen' }, h('div', { class: 'pasa' },
+      h('div', { class: 'abanico', 'aria-hidden': 'true' }, naipe(null), naipe(null), naipe(null)),
+      h('h1', { class: 'titulo' }, 'La Rata'),
+      h('p', { class: 'muted puntos' }, session ? 'Volviendo a tu partida' : 'Conectando')));
+  }
+
+  function nameField() {
+    const input = h('input', { id: 'mi-nombre', type: 'text', maxlength: '20', autocomplete: 'nickname', enterkeyhint: 'done', placeholder: 'Tu nombre', 'aria-label': 'Tu nombre' });
+    input.value = myName;
+    input.addEventListener('input', () => { myName = input.value.slice(0, 20); store.set(KEY_NAME, myName); });
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); input.blur(); } });
+    return h('div', { class: 'campo campo-solo' }, input);
+  }
+  function needName() {
+    myName = (myName || '').replace(/\s+/g, ' ').trim();
+    store.set(KEY_NAME, myName);
+    if (!myName) { toast('Escribe tu nombre primero.'); const el = document.getElementById('mi-nombre'); if (el) el.focus(); return true; }
+    return false;
+  }
+
+  // --- instalar la app ---
+  let installEvent = null;
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEvent = e; render(); });
+  window.addEventListener('appinstalled', () => { installEvent = null; toast('App instalada. Ya la tienes en la pantalla de inicio.'); render(); });
+  const standalone = () => (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+  const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+  function installCard() {
+    if (standalone()) return null;
+    if (installEvent) {
+      return h('div', { class: 'instalar' }, h('p', null, 'Instala La Rata para abrirla como una app más.'),
+        h('button', { class: 'btn chico oro', tap: async () => { const e = installEvent; installEvent = null; try { await e.prompt(); } catch (_) { /* cancelado */ } render(); } }, 'Instalar'));
+    }
+    if (isIOS()) return h('div', { class: 'instalar' }, h('p', null, 'Para instalarla: pulsa Compartir en Safari y luego «Añadir a pantalla de inicio».'));
+    return null;
+  }
+
+  function screenHome() {
+    const params = new URLSearchParams(location.search);
+    const fromLink = (params.get('sala') || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5);
+    const code = h('input', { id: 'codigo', class: 'codigo-input', type: 'text', maxlength: '5', autocomplete: 'off', autocapitalize: 'characters', enterkeyhint: 'go', placeholder: 'CÓDIGO', 'aria-label': 'Código de sala' });
+    code.value = fromLink;
+    const join = () => {
+      if (needName()) return;
+      const c = code.value.trim().toUpperCase();
+      if (c.length !== 5) { toast('El código tiene 5 letras.'); code.focus(); return; }
+      act('join', { code: c, name: myName });
+    };
+    code.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); join(); } });
+    const crear = h('button', { class: `btn ${fromLink ? '' : 'oro'}`, disabled: pending ? true : null, tap: () => { if (needName()) return; act('create', { name: myName, config: { lives: 2 } }); } }, 'Crear una sala');
+    const unir = h('button', { class: `btn ${fromLink ? 'oro' : ''}`, disabled: pending ? true : null, tap: join }, 'Entrar');
+    return h('section', { class: 'screen' },
+      h('div', { class: 'portada' },
+        h('div', { class: 'abanico', 'aria-hidden': 'true' }, naipe(null), naipe({ rank: 1, suit: 'oros' }, { up: true }), naipe(null)),
+        h('h1', { class: 'titulo' }, 'La Rata'),
+        h('p', { class: 'muted' }, 'Cada uno con su móvil y su carta.')),
+      installCard(),
+      h('div', { class: 'bloque' }, h('span', { class: 'etiqueta' }, 'TU NOMBRE'), nameField()),
+      h('div', { class: 'bloque' }, h('span', { class: 'etiqueta' }, fromLink ? 'TE HAN INVITADO A LA SALA' : 'ENTRAR CON CÓDIGO'), h('div', { class: 'unirse' }, code, unir)),
+      h('p', { class: 'separador' }, 'o'),
+      crear,
+      h('details', { class: 'reglas' }, h('summary', null, 'Reglas'), h('ul', null,
+        h('li', null, 'Cada uno recibe una carta y solo ve la suya.'),
+        h('li', null, 'En tu turno te la quedas o la cambias con el siguiente. Si te la cambian, verás cómo se va tu carta y llega la suya.'),
+        h('li', null, 'Quien reparte juega el último. Si tiene la carta más baja puede levantar baraja: si la que saca es mayor que la más baja de otro, pierde ese otro.'),
+        h('li', null, 'Gana la carta más baja. Un 12 gana la ronda al momento.'),
+        h('li', null, 'As de bastos: −2 vidas. Rey de bastos: +1 vida, salvo con pelle.'),
+        h('li', null, 'Sin vidas quedas fuera. Gana el último que siga vivo.'))),
+      h('a', { class: 'enlace', href: '/una-pantalla.html' }, '¿Solo hay un móvil? Jugad pasándolo de mano en mano'));
+  }
+
+  async function shareCode() {
+    const url = `${location.origin}/?sala=${snap.code}`;
+    const text = `Únete a mi partida de La Rata. Código: ${snap.code}`;
+    try {
+      if (navigator.share) { await navigator.share({ title: 'La Rata', text, url }); return; }
+    } catch (_) { return; }
+    try { await navigator.clipboard.writeText(`${text}\n${url}`); toast('Enlace copiado. Pégalo en el grupo.'); }
+    catch (_) { toast(url); }
+  }
+
+  function screenLobby() {
+    const host = isHost();
+    const online = new Set(snap.on || []);
+    const lobby = snap.lobby;
+    const lista = h('div', { class: 'sala-lista' }, lobby.map((x, i) => h('div', { class: `sala-fila ${online.has(x.p) ? '' : 'desconectado'}` },
+      h('span', { class: 'asiento-n' }, i + 1),
+      h('span', { class: 'nm' }, x.n, x.p === snap.me ? h('span', { class: 'tu' }, '  · tú') : null, x.p === snap.host ? h('span', { class: 'tu' }, '  · reparte') : null),
+      host ? h('div', { class: 'ctrl' },
+        h('button', { 'aria-label': `Subir a ${x.n}`, disabled: i === 0 ? true : null, tap: () => send({ type: 'move', target: x.p, delta: -1 }) }, '↑'),
+        h('button', { 'aria-label': `Bajar a ${x.n}`, disabled: i === lobby.length - 1 ? true : null, tap: () => send({ type: 'move', target: x.p, delta: 1 }) }, '↓'),
+        x.p !== snap.me ? h('button', { 'aria-label': `Sacar a ${x.n}`, tap: () => send({ type: 'kick', target: x.p }) }, '×') : null) : h('span'))));
+
+    const parts = [cabecera(host ? 'Tú repartes' : `Reparte ${nameOf(snap.host)}`),
+      h('div', { class: 'codigo-sala' }, h('span', { class: 'eyebrow' }, 'CÓDIGO DE LA SALA'), h('span', { class: 'letras' }, snap.code),
+        h('button', { class: 'btn chico', tap: shareCode }, 'Invitar por WhatsApp o enlace')),
+      h('div', { class: 'resultado' }, h('h2', null, `${lobby.length} en la mesa`)),
+      lista,
+      h('p', { class: 'nota' }, 'Ordenad la lista como estáis sentados: en tu turno cambias la carta con el siguiente de la lista, y el último con el primero.')];
+
+    if (host) {
+      const contador = (label, key, min, max) => h('div', { class: 'contador-caja' }, h('span', { class: 'etiqueta' }, label),
+        h('div', { class: 'contador' },
+          h('button', { 'aria-label': `Menos ${label.toLowerCase()}`, tap: () => send({ type: 'config', config: { [key]: Math.max(min, snap.cfg[key] - 1) } }) }, '−'),
+          h('output', null, snap.cfg[key]),
+          h('button', { 'aria-label': `Más ${label.toLowerCase()}`, tap: () => send({ type: 'config', config: { [key]: Math.min(max, snap.cfg[key] + 1) } }) }, '+')));
+      const tie = h('select', { id: 'empate', class: 'campo', 'aria-label': 'Empate en la carta más baja' },
+        h('option', { value: 'empate_todos_ganan' }, 'Los empatados ganan; el resto pierde'),
+        h('option', { value: 'empate_todos_pierden' }, 'Los empatados pierden; el resto no'));
+      tie.value = snap.cfg.tie;
+      tie.addEventListener('change', () => send({ type: 'config', config: { tie: tie.value } }));
+      const enough = lobby.length >= snap.cfg.min;
+      parts.push(h('div', { class: 'ajustes' }, contador('VIDAS', 'lives', 1, 20), contador('PIERDES POR RONDA', 'lost', 1, 5)),
+        h('div', { class: 'bloque' }, h('label', { for: 'empate' }, 'SI EMPATAN CON LA MÁS BAJA'), tie),
+        h('div', { class: 'acciones' }, h('button', { class: 'btn oro', disabled: !enough || pending ? true : null, tap: () => act('start') }, enough ? 'Repartir cartas' : 'Esperando jugadores')));
+    } else {
+      parts.push(h('p', { class: 'muted small' }, `${snap.cfg.lives} vidas · pierdes ${snap.cfg.lost} por ronda`),
+        h('div', { class: 'acciones' }, h('p', { class: 'estado-turno puntos' }, `Esperando a que ${nameOf(snap.host)} reparta`)));
+    }
+    return h('section', { class: 'screen' }, parts);
+  }
+
+  function ordenTurnos() {
+    return h('div', { class: 'orden', 'aria-label': 'Orden de turnos' }, snap.to.map((pid, i) => {
+      const p = P(pid);
+      const act = snap.ac.find((a) => a[1] === pid && a[0] !== 'penalty');
+      const hizo = act ? { keep: 'se quedó', swap: 'cambió', draw: 'levantó' }[act[0]] : null;
+      return h('div', { class: `turno-ficha ${i === snap.ti ? 'ahora' : ''} ${i < snap.ti ? 'hecho' : ''} ${p.pe ? 'pelle' : ''} ${p.on ? '' : 'off'}` },
+        h('span', { class: 'ini' }, i + 1), h('span', { class: 'nm' }, pid === snap.me ? 'Tú' : p.n), h('span', { class: 'vidas' }, `♥${p.l}`), hizo ? h('span', { class: 'hizo' }, hizo) : null);
+    }));
+  }
+
+  function nextAliveAfter(pid) {
+    const pl = snap.pl;
+    const i = pl.findIndex((x) => x.p === pid);
+    for (let k = 1; k < pl.length; k++) { const x = pl[(i + k) % pl.length]; if (x.a) return x.p; }
+    return null;
+  }
+
+  function hostTurnTools() {
+    if (!isHost() || snap.cur === snap.me) return null;
+    const cur = P(snap.cur);
+    return h('div', { class: 'anfitrion-extra' }, h('button', { class: `btn chico ${cur && !cur.on ? 'rojo' : 'fantasma'}`, tap: () => act('skip') },
+      `${cur && !cur.on ? 'Sin conexión: ' : ''}pasar el turno de ${nameOf(snap.cur)}`));
+  }
+
+  function screenTurns(fx) {
+    const mine = P(snap.me);
+    const card = myCard(snap);
+    const myTurn = snap.cur === snap.me;
+    const parts = [cabecera(`Ronda ${snap.r} · ${snap.dk} en la baraja`), ordenTurnos()];
+
+    if (banner && card) {
+      const txt = banner.kind === 'recibido'
+        ? [h('strong', null, nameOf(banner.other)), ' te ha cambiado la carta. Se ha llevado la tuya y te ha dado esta.']
+        : banner.kind === 'cambiado'
+          ? ['Le has dado tu carta a ', h('strong', null, nameOf(banner.other)), '. Ahora tienes la suya.']
+          : ['Has levantado baraja. Esta es tu carta nueva.'];
+      parts.push(h('div', { class: `banner-cambio ${banner.kind === 'recibido' ? '' : 'mio'}`, role: 'status' }, h('span', { html: ICON.cambio }), h('p', null, txt)));
+    }
+
+    if (!card) {
+      parts.push(h('div', { class: 'espectador' },
+        h('span', { class: 'eyebrow' }, mine && !mine.a ? 'TE HAS QUEDADO SIN VIDAS' : 'ESTÁS MIRANDO'),
+        h('p', { class: 'muted' }, mine && !mine.a ? 'Sigue la partida desde aquí.' : 'Entrarás en la siguiente partida.'),
+        h('p', { class: 'estado-turno' }, 'Turno de ', h('b', null, nameOf(snap.cur)))));
+      const tools = hostTurnTools();
+      if (tools) parts.push(tools);
+      return h('section', { class: 'screen' }, parts);
+    }
+
+    const startCard = fx.effect && fx.effect !== 'reparto' && fx.oldCard ? fx.oldCard : card;
+    const carta = naipe(startCard, { up: !cardHidden && fx.effect !== 'reparto', cls: 'toca' });
+    const toggle = (el) => onTap(el, () => { if (animating) return; cardHidden = !cardHidden; el.classList.toggle('boca-arriba', !cardHidden); fill(card); });
+    toggle(carta);
+    const leyenda = h('div', { class: 'leyenda' });
+    const fill = (c) => leyenda.replaceChildren(h('span', { class: 'carta-nombre' }, cardHidden ? 'Carta tapada' : cardName(c)), h('div', { class: 'orden' }, cardHidden ? [] : cardTags(c)));
+    if (!fx.effect) fill(card);
+    parts.push(h('div', { class: 'mesa' }, h('div', { class: 'halo' }), carta), leyenda, h('p', { class: 'pista' }, 'Toca la carta para taparla o destaparla'));
+
+    const acciones = h('div', { class: 'acciones' });
+    if (myTurn) {
+      const next = nextAliveAfter(snap.me);
+      const busy = !!pending;
+      acciones.append(...[
+        h('p', { class: 'estado-turno' }, h('b', null, 'Te toca.'), ' ¿Te la quedas o la cambias?'),
+        h('div', { class: 'duo' },
+          h('button', { class: 'btn', disabled: busy ? true : null, tap: () => act('keep') }, h('span', { html: ICON.quedar }), 'Me la quedo'),
+          h('button', { class: 'btn rojo', disabled: busy || !next ? true : null, tap: () => act('swap') }, h('span', { html: ICON.cambio }), next ? `Cambiar con ${nameOf(next)}` : 'Cambiar')),
+        snap.cd === snap.me ? h('button', { class: 'btn oro', disabled: busy ? true : null, tap: () => act('draw') }, h('span', { html: ICON.baraja }), 'Levantar baraja') : null,
+      ].filter(Boolean));
+      const key = `${snap.sid}:${snap.r}:${snap.ti}`;
+      if (lastTurnBuzz !== key) { lastTurnBuzz = key; vibrate([30, 40, 30]); }
+    } else {
+      acciones.append(h('p', { class: 'estado-turno' }, 'Turno de ', h('b', null, nameOf(snap.cur)), h('span', { class: 'puntos' })));
+    }
+    const tools = hostTurnTools();
+    if (tools) acciones.append(tools);
+    parts.push(acciones);
+
+    if (fx.effect) animateCard(fx, carta, card, fill, toggle);
+    return h('section', { class: 'screen' }, parts);
+  }
+
+  function animateCard(fx, carta, card, fill, toggle) {
+    animating = true;
+    requestAnimationFrame(async () => {
+      let el = carta;
+      if (fx.effect === 'reparto') {
+        await anim(el, [{ transform: 'translateY(-60%) rotate(-8deg) scale(.8)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 520 });
+      } else {
+        const right = fx.effect === 'cambio-mio';
+        const draw = fx.effect === 'levanto';
+        const out = draw ? 'translateY(60%) scale(.8)' : `translateX(${right ? 140 : -140}%) rotate(${right ? 14 : -14}deg)`;
+        const from = draw ? 'translateY(-90%) rotate(-6deg) scale(.8)' : `translateX(${right ? 140 : -140}%) rotate(${right ? 14 : -14}deg)`;
+        vibrate(fx.effect === 'cambio-recibido' ? [50, 70, 50] : 30);
+        if (el.classList.contains('boca-arriba')) { el.classList.remove('boca-arriba'); await wait(560); }
+        await anim(el, [{ transform: 'none', opacity: 1 }, { transform: out, opacity: 0 }], { duration: 420, easing: 'cubic-bezier(.5,0,.8,.4)' });
+        const nueva = naipe(card, { up: false, cls: 'toca' });
+        toggle(nueva);
+        el.replaceWith(nueva); el = nueva;
+        await anim(el, [{ transform: from, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 560 });
+      }
+      cardHidden = false;
+      el.classList.add('boca-arriba');
+      await wait(620);
+      if (fx.effect !== 'reparto') el.classList.add('brilla');
+      fill(card);
+      animating = false;
+      if (queued) { queued = false; render(); }
+    });
+  }
+
+  function summary(res) {
+    if (!res.w.length) return 'Empate en la carta más baja: nadie gana';
+    return `${res.w.length > 1 ? 'Ganan' : 'Gana'} ${res.w.map(nameOf).join(', ')} ${res.tw ? 'con un 12' : 'con la carta más baja'}`;
+  }
+
+  function cronica(res) {
+    const b = (pid) => h('b', null, pid === snap.me ? 'Tú' : nameOf(pid));
+    const lines = res.ac.map(([t, pid, other]) => (t === 'keep' ? [b(pid), ' se quedó su carta']
+      : t === 'swap' ? [b(pid), ' cambió con ', b(other)]
+        : t === 'draw' ? [b(pid), ' levantó baraja'] : [b(pid), ' pierde por la baraja levantada']));
+    for (const [pid, label, lives, blocked] of res.ef) lines.push(blocked ? [b(pid), ` tenía el ${label}, pero con el pelle no suma`] : [b(pid), ` · ${label}: ${lives > 0 ? '+' : ''}${lives} vida${Math.abs(lives) > 1 ? 's' : ''}`]);
+    if (res.el.length) lines.push([h('b', null, res.el.map(nameOf).join(', ')), ' queda fuera']);
+    return lines.length ? h('div', { class: 'cronica' }, lines.map((l) => h('p', null, l))) : null;
+  }
+
+  function revealScreen(fx, over) {
+    const res = snap.res;
+    if (!res) return h('section', { class: 'screen' }, cabecera(''), h('p', { class: 'estado-turno puntos' }, 'Revelando'));
+    const animate = !!fx.revealAnim;
+    const rejilla = h('div', { class: 'rejilla' });
+    const items = [];
+    for (const [pid, code] of res.rv) {
+      const card = dec(code);
+      const d = res.la[pid] - res.lb[pid];
+      const win = res.w.includes(pid);
+      const n = naipe(card, { up: !animate, cls: animate ? '' : (win ? 'brilla' : 'apagada') });
+      const deltaTxt = d === 0 ? `♥${res.la[pid]}` : `${d > 0 ? '+' : ''}${d} · ♥${Math.max(0, res.la[pid])}`;
+      const delta = h('span', { class: `delta ${d < 0 ? 'menos' : d > 0 ? 'mas' : ''}` }, animate ? '' : deltaTxt);
+      const corona = win ? h('span', { class: 'corona', html: CROWN, style: animate ? 'opacity:0' : '' }) : null;
+      rejilla.appendChild(h('div', { class: 'asiento' }, corona, n, h('span', { class: 'nm' }, pid === snap.me ? 'Tú' : nameOf(pid)), delta, res.el.includes(pid) ? h('span', { class: 'fuera' }, 'FUERA') : null));
+      items.push({ n, delta, deltaTxt, win, corona });
+    }
+    const resumen = h('p', { class: 'muted', style: animate ? 'visibility:hidden' : '' }, summary(res));
+    const acciones = h('div', { class: 'acciones' });
+    if (isHost()) {
+      acciones.append(over
+        ? h('button', { class: 'btn oro', tap: () => { showWinner = true; render(); } }, 'Ver quién gana')
+        : h('button', { class: 'btn oro', disabled: pending ? true : null, tap: () => act('next') }, 'Siguiente ronda'));
+    } else {
+      acciones.append(h('p', { class: 'estado-turno puntos' }, over ? 'Fin de la partida' : `Esperando a que ${nameOf(snap.host)} reparta`));
+    }
+    const screen = h('section', { class: 'screen' },
+      cabecera(`Ronda ${res.r}`),
+      h('div', { class: 'resultado' }, h('span', { class: 'eyebrow' }, res.tw ? '¡HA SALIDO UN 12!' : `RONDA ${res.r}`), h('h2', null, 'Cartas boca arriba'), resumen),
+      rejilla, cronica(res), acciones);
+    if (animate) {
+      animating = true;
+      requestAnimationFrame(async () => {
+        await wait(350);
+        for (const x of items) { x.n.classList.add('boca-arriba'); await wait(260); }
+        await wait(500);
+        for (const x of items) {
+          if (x.win) { x.n.classList.add('brilla'); if (x.corona) { x.corona.style.opacity = ''; x.corona.classList.add('flota'); } } else x.n.classList.add('apagada');
+          x.delta.textContent = x.deltaTxt; x.delta.classList.add('flota');
+        }
+        resumen.style.visibility = '';
+        vibrate(60);
+        animating = false;
+        if (queued) { queued = false; render(); }
+      });
+    }
+    return screen;
+  }
+
+  function screenOver(fx) {
+    if (!showWinner) {
+      if (!isHost() && !overTimer) overTimer = setTimeout(() => { overTimer = null; if (snap && snap.ph === 'over') { showWinner = true; render(); } }, 6000);
+      return revealScreen(fx, true);
+    }
+    const winner = snap.win ? P(snap.win) : null;
+    const ranking = snap.pl.slice().sort((a, b) => b.l - a.l || Number(b.a) - Number(a.a));
+    const screen = h('section', { class: 'screen' },
+      cabecera(`Ronda ${snap.r}`),
+      h('div', { class: 'final' },
+        h('span', { class: 'corona-grande', html: CROWN }),
+        h('span', { class: 'eyebrow' }, winner ? 'GANA LA PARTIDA' : 'NADIE SIGUE VIVO'),
+        h('h2', { class: 'ganador' }, winner ? (winner.p === snap.me ? '¡Has ganado!' : winner.n) : 'Sin ganador')),
+      h('div', { class: 'clasif' }, ranking.map((p) => h('div', { class: `fila ${p.p === snap.win ? 'primero' : ''}` }, h('span', null, p.n), h('span', { class: 'muted' }, p.a ? `♥${p.l}` : 'fuera')))),
+      h('div', { class: 'acciones' }, isHost()
+        ? [h('button', { class: 'btn oro', tap: () => act('rematch') }, 'Revancha con los mismos'),
+          h('button', { class: 'btn fantasma', tap: () => act('lobby') }, 'Volver a la sala (entra o sale gente)')]
+        : h('p', { class: 'estado-turno puntos' }, `Esperando a que ${nameOf(snap.host)} empiece otra`)));
+    if (winner && !reduceMotion) {
+      const c = h('div', { class: 'confeti', 'aria-hidden': 'true' });
+      const colors = ['#e0ae4c', '#a8231b', '#f4ead3', '#2c4f8c', '#3d7a33'];
+      for (let i = 0; i < 60; i++) c.appendChild(h('i', { style: `left:${Math.random() * 100}%;background:${colors[i % 5]};animation-duration:${2.2 + Math.random() * 2}s;animation-delay:${Math.random() * .8}s` }));
+      screen.appendChild(c);
+      setTimeout(() => c.remove(), 5200);
+    }
+    return screen;
+  }
+
+  // ---------- marcador y salir ----------
+  function renderSheet() {
+    document.querySelectorAll('.velo').forEach((v) => v.remove());
+    if (!sheet || !snap) return;
+    const cerrar = () => { sheet = null; renderSheet(); };
+    if (sheet === 'salir') {
+      document.body.appendChild(h('div', { class: 'velo centro' }, h('div', { class: 'dialogo', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Salir de la sala' },
+        h('h3', null, '¿Salir de la sala?'),
+        h('p', { class: 'muted' }, snap.k === 'juego' ? 'La partida sigue sin ti; tu turno lo puede pasar quien reparte.' : 'Dejarás tu sitio en la mesa.'),
+        h('div', { class: 'duo' }, h('button', { class: 'btn', tap: cerrar }, 'Quedarme'),
+          h('button', { class: 'btn rojo', tap: () => { send({ type: 'leave' }); leaveRoom(); } }, 'Salir')))));
+      return;
+    }
+    if (snap.k !== 'juego') { sheet = null; return; }
+    const host = isHost();
+    const jugadores = h('div', { class: 'jugadores' }, snap.pl.map((p) => h('div', { class: `jug ${p.a ? '' : 'fuera'}` },
+      h('span', { class: 'nm' }, p.p === snap.me ? `${p.n} (tú)` : p.n),
+      h('span', { class: 'vidas' }, p.a ? `♥ ${p.l}` : 'fuera'),
+      host ? h('button', { class: 'toggle', 'aria-pressed': String(!!p.pe), tap: () => send({ type: 'pelle', target: p.p }) }, p.pe ? 'Tiene pelle' : 'Dar pelle')
+        : h('span', { class: 'muted small' }, p.pe ? 'pelle' : ''))));
+    const historia = h('div', { class: 'historia' });
+    (snap.hi || []).slice().reverse().forEach((e) => {
+      historia.appendChild(h('div', { class: 'ent' }, h('h3', null, `Ronda ${e.r}`),
+        h('p', null, e.rv.map(([pid, code]) => `${nameOf(pid)}: ${cardName(dec(code))}`).join(' · ')),
+        h('p', { class: 'muted' }, e.w.length ? `Gana ${e.w.map(nameOf).join(', ')}${e.tw ? ' con un 12' : ''}` : 'Nadie gana'),
+        h('p', { class: 'muted small' }, Object.entries(e.la).map(([pid, l]) => `${nameOf(pid)} ♥${Math.max(0, l)}`).join(' · '))));
+    });
+    if (!(snap.hi || []).length) historia.appendChild(h('p', { class: 'muted small' }, 'Aún no ha terminado ninguna ronda.'));
+    const velo = h('div', { class: 'velo' }, h('div', { class: 'hoja', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Marcador' },
+      h('div', { class: 'hoja-cab' }, h('h2', null, 'Marcador'), h('button', { class: 'btn chico', tap: cerrar }, 'Cerrar')),
+      h('p', { class: 'muted small' }, `Sala ${snap.code}. ${host ? 'Quien tiene el pelle no recupera vida con el Rey de bastos.' : 'El pelle lo da quien reparte. Con pelle no se recupera vida con el Rey de bastos.'}`),
+      jugadores, h('span', { class: 'etiqueta' }, 'RONDAS'), historia,
+      h('button', { class: 'btn fantasma', tap: () => { sheet = 'salir'; renderSheet(); } }, 'Salir de la sala')));
+    velo.addEventListener('click', (e) => { if (e.target === velo) cerrar(); });
+    document.body.appendChild(velo);
+  }
+
+  function renderConnection() {
+    document.querySelectorAll('.conexion').forEach((n) => n.remove());
+    if (everConnected && !connected) document.body.appendChild(h('div', { class: 'conexion', role: 'status' }, 'Reconectando…'));
+  }
+
+  // ---------- arranque ----------
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    navigator.serviceWorker.register('/sw.js').catch(() => { /* la app funciona igual sin él */ });
+  }
+  try { if (navigator.wakeLock) navigator.wakeLock.request('screen').catch(() => {}); } catch (_) { /* sin bloqueo de pantalla */ }
+  render();
+  connect();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "name": "la-rata",
+  "version": "1.0.0",
+  "description": "La Rata: juego de cartas multijugador. Cada jugador en su móvil (app instalable) y un servidor que lleva la partida.",
+  "main": "src/server.js",
+  "private": true,
+  "scripts": {
+    "start": "node src/server.js",
+    "build": "node build-app.js",
+    "iconos": "node build-app.js --iconos",
+    "test": "node --test --test-force-exit test/*.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

@@ -1,0 +1,823 @@
+<meta charset="utf-8">
+<title>La Rata en la mesa</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#0b2e22">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="La Rata">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@500;700;800&family=Alegreya+Sans:wght@400;500;700&display=swap">
+<style>
+/*BASE_CSS*/
+
+/* ---------- multijugador ---------- */
+.campo-solo input { padding-left: 14px; }
+.sala-lista { display: grid; gap: 8px; }
+.sala-fila { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 14px; background: rgba(0,0,0,.24); border: 1px solid var(--linea); }
+.sala-fila .asiento-n { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-family: var(--display); font-weight: 800; background: var(--naipe); color: var(--tinta); }
+.sala-fila .nm { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.sala-fila .tu { color: var(--oro); font-weight: 500; font-size: .85rem; }
+.sala-fila .ctrl { display: flex; gap: 4px; }
+.sala-fila .ctrl button { appearance: none; width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--linea); background: rgba(255,255,255,.05); cursor: pointer; font-weight: 700; }
+.sala-fila .ctrl button:disabled { opacity: .3; }
+.sala-fila.desconectado { opacity: .55; }
+.nota { font-size: .9rem; color: var(--muted); border-left: 3px solid var(--oro); padding-left: 10px; }
+.puntos::after { content: ""; animation: puntos 1.4s steps(4) infinite; }
+@keyframes puntos { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
+.estado-turno { text-align: center; font-size: 1.05rem; }
+.estado-turno b { color: var(--oro); }
+.mesa .naipe.toca { cursor: pointer; }
+.mesa .naipe { --w: min(54vw, 220px, 27dvh); }
+.pista { text-align: center; font-size: .8rem; color: var(--muted); }
+.registro { display: grid; gap: 2px; font-size: .86rem; color: var(--muted); text-align: center; min-height: 1.3em; }
+.banner-cambio.mio { background: linear-gradient(90deg, rgba(224,174,76,.35), rgba(224,174,76,.1)); border-color: rgba(224,174,76,.5); }
+.espectador { text-align: center; padding: 30px 0; display: grid; gap: 10px; justify-items: center; }
+.anfitrion-extra { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.conexion { position: fixed; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); z-index: 30; background: rgba(168,35,27,.92); color: var(--naipe); padding: 6px 14px; border-radius: 999px; font-size: .85rem; }
+</style>
+
+<div id="app"></div>
+
+<script>
+/*GAME_JS*/
+</script>
+<script>
+(() => {
+  'use strict';
+
+  const G = window.LaRataGame;
+  const reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const TEST_MODE = location.hash === '#prueba';
+  const KEY_ME = 'larata-online-yo';
+  const KEY_HOST = 'larata-online-mesa';
+
+/*CARDS_JS*/
+
+  const SUIT_CODE = { o: 'oros', c: 'copas', e: 'espadas', b: 'bastos' };
+  const enc = (c) => c ? `${c.rank}${c.suit[0]}` : null;
+  const dec = (s) => s ? { rank: parseInt(s, 10), suit: SUIT_CODE[s.slice(-1)] } : null;
+
+  // ---------- utilidades de interfaz ----------
+  function h(tag, attrs, ...kids) {
+    const n = document.createElement(tag);
+    if (attrs) {
+      for (const [k, v] of Object.entries(attrs)) {
+        if (v === null || v === undefined || v === false) continue;
+        if (k === 'class') n.className = v;
+        else if (k === 'html') n.innerHTML = v; // solo SVG fijos de este archivo
+        else if (k === 'tap') onTap(n, v);
+        else if (k === 'style') n.style.cssText = v;
+        else n.setAttribute(k, v === true ? '' : v);
+      }
+    }
+    for (const kid of kids.flat()) {
+      if (kid === null || kid === undefined || kid === false) continue;
+      n.appendChild(typeof kid === 'string' || typeof kid === 'number' ? document.createTextNode(String(kid)) : kid);
+    }
+    return n;
+  }
+  function onTap(el, fn) {
+    let last = 0;
+    el.addEventListener('pointerup', (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      if (el.disabled) return;
+      last = Date.now(); fn(e);
+    });
+    el.addEventListener('click', (e) => { if (Date.now() - last < 700 || el.disabled) return; fn(e); });
+  }
+  const wait = (ms) => new Promise((r) => setTimeout(r, reduceMotion ? 0 : ms));
+  function anim(el, frames, opts) {
+    if (!el || !el.animate || reduceMotion) return Promise.resolve();
+    return el.animate(frames, Object.assign({ duration: 400, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'forwards' }, opts)).finished.catch(() => {});
+  }
+  function vibrate(p) { try { navigator.vibrate && navigator.vibrate(p); } catch (_) { /* sin vibración */ } }
+  function toast(text) {
+    document.querySelectorAll('.toast').forEach((t) => t.remove());
+    const t = h('div', { class: 'toast', role: 'status' }, text);
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3200);
+  }
+  const store = {
+    get(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (_) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_) { /* sin almacenamiento */ } },
+    del(k) { try { localStorage.removeItem(k); } catch (_) { /* sin almacenamiento */ } },
+  };
+  const randomId = () => Math.random().toString(36).slice(2, 10);
+  const cardName = (c) => `${RANK_NAME[c.rank] || c.rank} de ${c.suit}`;
+
+  function naipe(card, { up = false, cls = '' } = {}) {
+    const kids = [h('div', { class: 'dorso' }, h('div', { class: 'ovalo', html: RAT }))];
+    if (card) {
+      const face = h('div', { class: 'cara' }, h('div', { class: 'marco' }));
+      for (let i = 0; i < PINTA_CORTES[card.suit]; i++) {
+        const pos = `${30 + i * 14}%`;
+        face.appendChild(h('span', { class: 'pinta arriba', style: `left:${pos}` }));
+        face.appendChild(h('span', { class: 'pinta abajo', style: `right:${pos}` }));
+      }
+      face.appendChild(h('span', { class: 'indice ar' }, String(card.rank)));
+      face.appendChild(h('span', { class: 'indice ab' }, String(card.rank)));
+      if (card.rank >= 10) {
+        face.appendChild(h('div', { class: 'figura' },
+          h('div', { class: 'emblema', html: EMBLEM[card.rank] }),
+          h('div', { class: 'palo', html: SUIT[card.suit] }),
+          h('div', { class: 'nombre' }, RANK_NAME[card.rank].toUpperCase())));
+      } else {
+        const pips = h('div', { class: 'pips' });
+        if (card.rank === 1) pips.appendChild(h('div', { class: 'pip grande', style: 'left:50%;top:50%', html: SUIT[card.suit] }));
+        else for (const [x, y] of PIP_LAYOUT[card.rank]) pips.appendChild(h('div', { class: 'pip', style: `left:${x}%;top:${y}%`, html: SUIT[card.suit] }));
+        face.appendChild(pips);
+      }
+      kids.push(face);
+    }
+    return h('div', { class: `naipe ${up ? 'boca-arriba' : ''} ${cls}`.trim(), role: 'img', 'aria-label': card && up ? cardName(card) : 'Carta boca abajo' }, h('div', { class: 'naipe-in' }, kids));
+  }
+  function cardTags(card) {
+    const tags = [];
+    if (card.suit === 'bastos' && card.rank === 1) tags.push(h('span', { class: 'sello malo' }, 'As de bastos: −2 vidas'));
+    if (card.suit === 'bastos' && card.rank === 12) tags.push(h('span', { class: 'sello bueno' }, 'Rey de bastos: +1 vida'));
+    return tags;
+  }
+
+  // =====================================================================
+  //  RED: la "sala" de Claude (room). En #prueba se simula entre pestañas.
+  // =====================================================================
+  function mockRoom() {
+    const bc = new BroadcastChannel('larata-prueba');
+    const peer = randomId();
+    let mine = {};
+    const peers = new Map();
+    const topicHandlers = new Map();
+    const peerHandlers = new Set();
+    const snapshot = () => [{ peer, presence: mine, isMe: true, sameTab: true, by: null, kind: 'viewer', guest: false }, ...[...peers.entries()].map(([p, pr]) => ({ peer: p, presence: pr, isMe: false, sameTab: false, by: null, kind: 'viewer', guest: false }))];
+    const notify = () => setTimeout(() => peerHandlers.forEach((f) => f({ peers: snapshot(), joined: [], left: [], updated: [] })), 0);
+    bc.onmessage = (e) => {
+      const m = e.data;
+      if (m.t === 'pres') { peers.set(m.peer, m.presence); notify(); if (m.hello) bc.postMessage({ t: 'pres', peer, presence: mine }); }
+      if (m.t === 'bye') { peers.delete(m.peer); notify(); }
+      if (m.t === 'ev') (topicHandlers.get(m.topic) || []).forEach((f) => f({ topic: m.topic, data: m.data, peer: m.peer, isMe: false, sameTab: false, by: null, kind: 'viewer', guest: false }));
+    };
+    addEventListener('pagehide', () => bc.postMessage({ t: 'bye', peer }));
+    setTimeout(() => bc.postMessage({ t: 'pres', peer, presence: mine, hello: true }), 0);
+    return {
+      async presence(patch) { mine = Object.assign({}, mine, patch); for (const k of Object.keys(patch)) if (patch[k] === null) delete mine[k]; bc.postMessage({ t: 'pres', peer, presence: mine }); notify(); },
+      async emit(topic, data) { bc.postMessage({ t: 'ev', topic, data, peer }); },
+      on(topic, fn) { if (!topicHandlers.has(topic)) topicHandlers.set(topic, []); topicHandlers.get(topic).push(fn); return () => {}; },
+      onPeers(fn) { peerHandlers.add(fn); notify(); return () => peerHandlers.delete(fn); },
+      peers: snapshot,
+      connected: () => true,
+      onConnection(fn) { setTimeout(() => fn(true), 0); return () => {}; },
+    };
+  }
+
+  // =====================================================================
+  //  ESTADO LOCAL
+  // =====================================================================
+  const me = store.get(KEY_ME) || { pid: randomId(), name: '' };
+  store.set(KEY_ME, me);
+
+  let room = null;          // namespace de la sala (o simulación)
+  let canHost = false;      // puede ser la mesa (anfitrión)
+  let netStatus = 'cargando'; // cargando | listo | sin-sala
+  let snap = null;          // último estado recibido de la mesa
+  let hostPeer = null;      // peer que hace de mesa
+  let lastSnapAt = 0;
+  let joined = false;       // he pedido sentarme
+  let actSeq = 0;           // número de mi última jugada enviada
+  let pendingAct = 0;
+  let sheet = null;
+  let screenKey = '';
+
+  // Anfitrión
+  let host = null; // { state, lobby:[{p,n}], seen:{pid:n}, seq, ack:{} }
+
+  // =====================================================================
+  //  ANFITRIÓN: lleva la partida y la reparte a todos
+  // =====================================================================
+  function hostSave() { if (host) store.set(KEY_HOST, host); }
+
+  function startHosting() {
+    host = store.get(KEY_HOST);
+    if (!host || !host.lobby) host = { sid: randomId(), state: null, lobby: [{ p: me.pid, n: me.name }], seen: {}, seq: 0, ack: {}, cfg: { lives: 2, lost: 1, tie: 'empate_todos_ganan' }, hist: [], kicked: [] };
+    host.kicked = host.kicked || [];
+    if (!host.lobby.some((x) => x.p === me.pid)) host.lobby.unshift({ p: me.pid, n: me.name });
+    host.lobby.forEach((x) => { if (x.p === me.pid) x.n = me.name; });
+    joined = true;
+    room.presence({ pid: me.pid, n: me.name, sit: true, mesa: true });
+    hostOnPeers(room.peers());
+    hostBroadcast();
+    setInterval(() => { if (host) hostBroadcast(false); }, 4000);
+  }
+
+  function hostPayload() {
+    const s = host.state;
+    const base = { v: ++host.seq, sid: host.sid, host: me.pid, cfg: host.cfg, ack: host.ack };
+    if (!s || s.phase === 'lobby') return Object.assign(base, { k: 'sala', lobby: host.lobby, on: host.online || [] });
+    const p = Object.assign(base, {
+      k: 'juego', ph: s.phase, r: s.round, dk: s.deck.length, to: s.turnOrder, ti: s.turnIdx,
+      cur: G.currentPlayerId(s),
+      pl: s.players.map((x) => ({ p: x.id, n: x.name, l: x.lives, a: x.alive, pe: x.pelle })),
+      ac: s.roundActions.map((a) => [a.type, a.playerId, a.neighborId || null]),
+      cd: s.phase === 'turns' ? s.turnOrder.find((id) => G.canDraw(s, id)) || null : null,
+      win: s.winnerId,
+      hi: host.hist.slice(-6),
+    });
+    // Las cartas viajan con el estado; cada móvil solo dibuja la suya.
+    if (s.phase === 'turns') { p.c = {}; for (const x of s.players) if (x.card) p.c[x.id] = enc(x.card); }
+    if (s.phase !== 'turns' && s.history.length) {
+      const e = s.history[s.history.length - 1];
+      const prev = s.history[s.history.length - 2];
+      p.res = {
+        r: e.round, tw: e.byTwelve, w: e.winners, lo: e.losers, el: e.eliminated,
+        rv: e.reveals.map((x) => [x.playerId, enc(x.card)]),
+        ef: e.effects.map((f) => [f.playerId, f.label, f.lives, f.blocked ? 1 : 0]),
+        la: e.livesAfter,
+        lb: Object.fromEntries(e.reveals.map((x) => [x.playerId, prev && prev.livesAfter[x.playerId] !== undefined ? prev.livesAfter[x.playerId] : s.config.lives])),
+        ac: e.actions.map((a) => [a.type, a.playerId, a.neighborId || null]),
+      };
+    }
+    // Cada mensaje de la sala admite 4 KB: se recorta el historial si hace falta.
+    while (p.hi.length && JSON.stringify(p).length > 3800) p.hi.shift();
+    return p;
+  }
+
+  function hostBroadcast(bump = true) {
+    if (!host) return;
+    if (!bump) host.seq -= 1; // reenvío del mismo estado
+    const payload = hostPayload();
+    hostSave();
+    receive(payload, true);
+    room.emit('estado', payload).catch(() => {});
+  }
+
+  function hostRecordRound() {
+    const s = host.state;
+    if (!s.history.length) return;
+    const e = s.history[s.history.length - 1];
+    if (host.hist.length && host.hist[host.hist.length - 1].r === e.round && host.hist[host.hist.length - 1].g === host.game) return;
+    host.hist.push({ g: host.game, r: e.round, w: e.winners, tw: e.byTwelve, rv: e.reveals.map((x) => [x.playerId, enc(x.card)]), la: e.livesAfter });
+  }
+
+  /** Aplica una jugada (del propio anfitrión o pedida por un jugador). */
+  function hostApply(pid, act) {
+    const s = host.state;
+    if (!s) return;
+    try {
+      if (act.t === 'keep') G.keep(s, pid);
+      else if (act.t === 'swap') G.swap(s, pid);
+      else if (act.t === 'draw') G.draw(s, pid);
+      else return;
+    } catch (err) {
+      if (pid === me.pid) toast(err.message);
+      return;
+    }
+    if (s.phase !== 'turns') hostRecordRound();
+    hostBroadcast();
+  }
+
+  function hostOnPeers(list) {
+    if (!host) return;
+    let changed = false;
+    const present = new Set();
+    for (const peer of list) {
+      const pr = peer.presence || {};
+      if (typeof pr.pid !== 'string' || !/^[a-z0-9]{4,16}$/.test(pr.pid)) continue;
+      present.add(pr.pid);
+      const name = typeof pr.n === 'string' ? pr.n.replace(/\s+/g, ' ').trim().slice(0, 20) : '';
+      // Sentarse en la sala
+      if (pr.sit && name && (!host.state || host.state.phase === 'lobby')) {
+        const row = host.lobby.find((x) => x.p === pr.pid);
+        if (!row) {
+          if (!host.kicked.includes(pr.pid) && host.lobby.length < 8 && !host.lobby.some((x) => x.n.toLowerCase() === name.toLowerCase())) { host.lobby.push({ p: pr.pid, n: name }); changed = true; }
+        } else if (row.n !== name && !host.lobby.some((x) => x !== row && x.n.toLowerCase() === name.toLowerCase())) { row.n = name; changed = true; }
+      }
+      if (pr.sit === false && (!host.state || host.state.phase === 'lobby')) {
+        const before = host.lobby.length;
+        host.lobby = host.lobby.filter((x) => x.p !== pr.pid || x.p === me.pid);
+        if (host.lobby.length !== before) changed = true;
+      }
+      // Jugadas
+      const act = pr.act;
+      if (act && typeof act.n === 'number' && act.n > (host.seen[pr.pid] || 0)) {
+        host.seen[pr.pid] = act.n;
+        host.ack[pr.pid] = act.n;
+        if (host.state && act.r === host.state.round) hostApply(pr.pid, act);
+        else changed = true;
+      }
+    }
+    host.online = [...present];
+    if (changed) hostBroadcast();
+  }
+
+  function hostStartGame() {
+    if (host.lobby.length < 2) { toast('Hacen falta al menos 2 jugadores.'); return; }
+    try {
+      const s = G.createGame({ lives: host.cfg.lives, livesLostPerRound: host.cfg.lost, tiePolicy: host.cfg.tie, maxPlayers: 8 });
+      host.lobby.forEach((x) => G.addPlayer(s, { id: x.p, token: '-', name: x.n }));
+      // El anfitrión actúa como "anfitrión" del motor del juego.
+      s.hostId = host.lobby[0].p;
+      G.startGame(s, s.hostId);
+      host.state = s;
+      host.game = (host.game || 0) + 1;
+      host.hist = [];
+      if (s.phase !== 'turns') hostRecordRound();
+    } catch (err) { toast(err.message); return; }
+    hostBroadcast();
+  }
+
+  function hostNextRound() {
+    const s = host.state;
+    try { G.nextRound(s, s.hostId); } catch (err) { toast(err.message); return; }
+    if (s.phase !== 'turns') hostRecordRound();
+    hostBroadcast();
+  }
+
+  function hostRematch() {
+    host.state = null;
+    hostOnPeers(room.peers());
+    hostStartGame();
+  }
+
+  function hostBackToLobby() { host.state = null; hostOnPeers(room.peers()); hostBroadcast(); }
+
+  // =====================================================================
+  //  JUGADOR: recibe el estado y anima los cambios
+  // =====================================================================
+  let prev = null;           // estado anterior (para detectar cambios)
+  let shownCard = null;      // carta que tengo en pantalla ahora
+  let banner = null;         // { kind: 'recibido'|'cambiado'|'levantado', other }
+  let cardHidden = false;
+  let animating = false;
+  let queued = false;
+
+  function receive(payload, local) {
+    if (!payload || typeof payload !== 'object' || typeof payload.v !== 'number') return;
+    if (!local && host) return; // soy la mesa: mi estado manda
+    lastSnapAt = Date.now();
+    if (snap && payload.sid === snap.sid && payload.v <= snap.v) return;
+    const before = snap;
+    snap = payload;
+    if (pendingAct && snap.ack && snap.ack[me.pid] >= pendingAct) pendingAct = 0;
+    onNewState(before, snap);
+  }
+
+  function myCard(s) { return s && s.c && s.c[me.pid] ? dec(s.c[me.pid]) : null; }
+
+  function onNewState(a, b) {
+    if (b.k !== 'juego' || b.ph !== 'over') { showWinner = false; clearTimeout(overTimer); overTimer = null; }
+    if (b.k !== 'juego') { banner = null; shownCard = null; render(); return; }
+    const sameRound = a && a.k === 'juego' && a.r === b.r && a.host === b.host;
+    const newActs = sameRound ? b.ac.slice(a.ac.length) : [];
+    const newCard = myCard(b);
+    let effect = null;
+    if (!sameRound && b.ph === 'turns') { effect = 'reparto'; banner = null; cardHidden = false; }
+    for (const [type, pid, other] of newActs) {
+      if (type === 'swap' && pid === me.pid) { effect = 'cambio-mio'; banner = { kind: 'cambiado', other }; }
+      else if (type === 'swap' && other === me.pid) { effect = 'cambio-recibido'; banner = { kind: 'recibido', other: pid }; }
+      else if (type === 'draw' && pid === me.pid) { effect = 'levanto'; banner = { kind: 'levantado' }; }
+    }
+    if (b.ph !== 'turns') banner = null;
+    const oldCard = shownCard;
+    shownCard = newCard;
+    render({ effect, oldCard, newCard, revealAnim: b.ph !== 'turns' && (!a || a.k !== 'juego' || a.ph === 'turns' || a.r !== b.r) });
+  }
+
+  function sendAct(t) {
+    if (!snap || snap.k !== 'juego' || pendingAct) return;
+    if (host) { hostApply(me.pid, { t }); return; }
+    actSeq = Math.max(actSeq + 1, Date.now());
+    pendingAct = actSeq;
+    room.presence({ act: { n: actSeq, t, r: snap.r } }).catch(() => { pendingAct = 0; toast('No se ha podido enviar. Inténtalo otra vez.'); });
+    render();
+    setTimeout(() => { if (pendingAct === actSeq) { pendingAct = 0; render(); } }, 8000);
+  }
+
+  // =====================================================================
+  //  PANTALLAS
+  // =====================================================================
+  const app = document.getElementById('app');
+  const P = (pid) => snap && snap.pl ? snap.pl.find((x) => x.p === pid) : null;
+  const nameOf = (pid) => {
+    const p = P(pid) || (snap && snap.lobby ? snap.lobby.find((x) => x.p === pid) : null);
+    return p ? p.n : '—';
+  };
+
+  function render(fx = {}) {
+    if (animating) { queued = true; return; }
+    const screen = pickScreen();
+    const focused = document.activeElement && document.activeElement.id;
+    const sel = focused && document.activeElement.selectionStart;
+    app.replaceChildren(screen(fx));
+    if (focused) { const el = document.getElementById(focused); if (el) { el.focus(); try { el.setSelectionRange(sel, sel); } catch (_) { /* no es texto */ } } }
+    renderSheet();
+    renderConnection();
+  }
+
+  function pickScreen() {
+    if (netStatus === 'cargando') return screenLoading;
+    if (netStatus === 'sin-sala') return screenNoRoom;
+    if (!snap) return screenWelcome;
+    if (snap.k === 'sala') return screenLobby;
+    if (snap.ph === 'turns') return screenTurns;
+    if (snap.ph === 'reveal') return screenReveal;
+    return screenOver;
+  }
+
+  function cabecera(extra) {
+    return h('header', { class: 'cabecera' },
+      h('div', { class: 'marca', html: RAT_SMALL }),
+      h('span', { class: 'ronda' }, extra || ''),
+      snap && snap.k === 'juego' ? h('button', { class: 'btn chico', tap: () => { sheet = 'marcador'; renderSheet(); } }, 'Marcador') : null);
+  }
+
+  function screenLoading() {
+    return h('section', { class: 'screen' }, h('div', { class: 'pasa' },
+      h('div', { class: 'abanico', 'aria-hidden': 'true' }, naipe(null), naipe(null), naipe(null)),
+      h('h1', { class: 'titulo' }, 'La Rata'),
+      h('p', { class: 'muted puntos' }, 'Conectando con la mesa')));
+  }
+
+  function screenNoRoom() {
+    return h('section', { class: 'screen' }, h('div', { class: 'pasa' },
+      h('h1', { class: 'titulo' }, 'La Rata'),
+      h('p', null, 'Para jugar cada uno desde su móvil, abre este enlace en Claude con tu cuenta iniciada.'),
+      h('p', { class: 'muted' }, 'Quien ha creado el juego tiene que invitarte desde el botón Compartir.')));
+  }
+
+  function nameInput() {
+    const input = h('input', { id: 'mi-nombre', type: 'text', maxlength: '20', autocomplete: 'nickname', placeholder: 'Tu nombre', 'aria-label': 'Tu nombre' });
+    input.value = me.name;
+    input.addEventListener('input', () => { me.name = input.value.replace(/\s+/g, ' ').trimStart().slice(0, 20); store.set(KEY_ME, me); });
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); input.blur(); } });
+    return h('div', { class: 'campo campo-solo' }, input);
+  }
+
+  function needName() {
+    me.name = (me.name || '').trim();
+    store.set(KEY_ME, me);
+    if (!me.name) { toast('Escribe tu nombre primero.'); return true; }
+    return false;
+  }
+
+  function screenWelcome() {
+    const waiting = Date.now() - bootAt < 6000;
+    const crear = canHost ? h('button', { class: 'btn oro', tap: () => { if (needName()) return; startHosting(); } }, 'Abrir la mesa en este móvil') : null;
+    return h('section', { class: 'screen' },
+      h('div', { class: 'portada' },
+        h('div', { class: 'abanico', 'aria-hidden': 'true' }, naipe(null), naipe({ rank: 1, suit: 'oros' }, { up: true }), naipe(null)),
+        h('h1', { class: 'titulo' }, 'La Rata'),
+        h('p', { class: 'muted' }, 'Cada uno con su móvil y su carta.')),
+      h('div', { class: 'bloque' }, h('span', { class: 'etiqueta' }, 'TU NOMBRE'), nameInput()),
+      h('p', { class: `nota ${waiting ? 'puntos' : ''}` }, waiting ? 'Buscando una mesa abierta' : canHost
+        ? 'No hay ninguna mesa abierta. Ábrela tú: tu móvil llevará la partida y los demás se unen desde el suyo.'
+        : 'Todavía no hay mesa. Espera a que quien ha creado el juego la abra.'),
+      h('div', { class: 'acciones' }, crear));
+  }
+
+  function screenLobby() {
+    const isHost = !!host;
+    const lobby = snap.lobby;
+    const sitting = lobby.some((x) => x.p === me.pid);
+    const online = new Set(snap.on || []);
+    const lista = h('div', { class: 'sala-lista' }, lobby.map((x, i) => h('div', { class: `sala-fila ${online.size && !online.has(x.p) ? 'desconectado' : ''}` },
+      h('span', { class: 'asiento-n' }, i + 1),
+      h('span', { class: 'nm' }, x.n, x.p === me.pid ? h('span', { class: 'tu' }, '  · tú') : null, i === 0 ? h('span', { class: 'tu' }, '  · mesa') : null),
+      isHost ? h('div', { class: 'ctrl' },
+        h('button', { 'aria-label': `Subir a ${x.n}`, disabled: i === 0 ? true : null, tap: () => { host.lobby.splice(i - 1, 0, host.lobby.splice(i, 1)[0]); hostBroadcast(); } }, '↑'),
+        h('button', { 'aria-label': `Bajar a ${x.n}`, disabled: i === lobby.length - 1 ? true : null, tap: () => { host.lobby.splice(i + 1, 0, host.lobby.splice(i, 1)[0]); hostBroadcast(); } }, '↓'),
+        x.p !== me.pid ? h('button', { 'aria-label': `Quitar a ${x.n}`, tap: () => { host.kicked.push(x.p); host.lobby.splice(i, 1); hostBroadcast(); } }, '×') : null) : h('span'))));
+
+    const parts = [cabecera(isHost ? 'Tu móvil es la mesa' : `Mesa de ${nameOf(snap.host)}`),
+      h('div', { class: 'resultado' }, h('span', { class: 'eyebrow' }, 'SALA DE ESPERA'), h('h2', null, `${lobby.length} en la mesa`))];
+
+    if (!sitting && !isHost) {
+      parts.push(h('div', { class: 'bloque' }, h('span', { class: 'etiqueta' }, 'TU NOMBRE'), nameInput()));
+    }
+    parts.push(lista);
+    parts.push(h('p', { class: 'nota' }, 'Ordenad la lista como estáis sentados: en tu turno cambias la carta con el siguiente de la lista, y el último con el primero.'));
+
+    if (isHost) {
+      const contador = (label, key, min, max) => {
+        const out = h('output', null, host.cfg[key]);
+        const set = (v) => { host.cfg[key] = Math.max(min, Math.min(max, v)); hostBroadcast(); };
+        return h('div', { class: 'contador-caja' }, h('span', { class: 'etiqueta' }, label),
+          h('div', { class: 'contador' }, h('button', { 'aria-label': `Menos ${label.toLowerCase()}`, tap: () => set(host.cfg[key] - 1) }, '−'), out, h('button', { 'aria-label': `Más ${label.toLowerCase()}`, tap: () => set(host.cfg[key] + 1) }, '+')));
+      };
+      const tie = h('select', { id: 'empate', class: 'campo', 'aria-label': 'Empate en la carta más baja' },
+        h('option', { value: 'empate_todos_ganan' }, 'Los empatados ganan; el resto pierde'),
+        h('option', { value: 'empate_todos_pierden' }, 'Los empatados pierden; el resto no'));
+      tie.value = host.cfg.tie;
+      tie.addEventListener('change', () => { host.cfg.tie = tie.value; hostBroadcast(); });
+      parts.push(h('div', { class: 'ajustes' }, contador('VIDAS', 'lives', 1, 20), contador('PIERDES POR RONDA', 'lost', 1, 5)));
+      parts.push(h('div', { class: 'bloque' }, h('label', { for: 'empate' }, 'SI EMPATAN CON LA MÁS BAJA'), tie));
+      parts.push(h('div', { class: 'acciones' },
+        h('button', { class: 'btn oro', disabled: lobby.length < 2 ? true : null, tap: hostStartGame }, lobby.length < 2 ? 'Esperando jugadores' : 'Repartir cartas'),
+        h('button', { class: 'btn fantasma', tap: () => { sheet = 'cerrar-mesa'; renderSheet(); } }, 'Cerrar la mesa')));
+    } else {
+      parts.push(h('p', { class: 'muted small' }, `${snap.cfg.lives} vidas · pierdes ${snap.cfg.lost} por ronda`));
+      parts.push(h('div', { class: 'acciones' }, sitting
+        ? h('p', { class: 'estado-turno puntos' }, 'Esperando a que la mesa reparta')
+        : h('button', { class: 'btn oro', tap: () => { if (needName()) return; joined = true; room.presence({ pid: me.pid, n: me.name, sit: true }); render(); } }, 'Sentarme a jugar'),
+      !sitting && joined ? h('p', { class: 'pista' }, 'Si no apareces en la lista, cambia tu nombre (puede que ya esté cogido) y vuelve a pulsar.') : null,
+      sitting ? h('button', { class: 'btn fantasma', tap: () => { joined = false; room.presence({ sit: false }); } }, 'Levantarme') : null));
+    }
+    return h('section', { class: 'screen' }, parts);
+  }
+
+  function ordenTurnos() {
+    return h('div', { class: 'orden', 'aria-label': 'Orden de turnos' }, snap.to.map((pid, i) => {
+      const p = P(pid);
+      const act = snap.ac.find((a) => a[1] === pid && a[0] !== 'penalty');
+      const done = i < snap.ti;
+      const now = i === snap.ti;
+      const hizo = act ? { keep: 'se quedó', swap: 'cambió', draw: 'levantó' }[act[0]] : null;
+      return h('div', { class: `turno-ficha ${now ? 'ahora' : ''} ${done ? 'hecho' : ''} ${p.pe ? 'pelle' : ''}` },
+        h('span', { class: 'ini' }, i + 1), h('span', { class: 'nm' }, pid === me.pid ? 'Tú' : p.n), h('span', { class: 'vidas' }, `♥${p.l}`), hizo ? h('span', { class: 'hizo' }, hizo) : null);
+    }));
+  }
+
+  function screenTurns(fx) {
+    const mine = P(me.pid);
+    const card = myCard(snap);
+    const myTurn = snap.cur === me.pid;
+    const iPlay = !!card;
+    const parts = [cabecera(`Ronda ${snap.r} · ${snap.dk} en la baraja`), ordenTurnos()];
+
+    if (banner && iPlay) {
+      const txt = banner.kind === 'recibido'
+        ? [h('strong', null, nameOf(banner.other)), ' te ha cambiado la carta. Te ha quitado la tuya y te ha dado esta.']
+        : banner.kind === 'cambiado'
+          ? ['Le has dado tu carta a ', h('strong', null, nameOf(banner.other)), '. Ahora tienes la suya.']
+          : ['Has levantado baraja. Esta es tu carta nueva.'];
+      parts.push(h('div', { class: `banner-cambio ${banner.kind === 'recibido' ? '' : 'mio'}`, role: 'status' }, h('span', { html: ICON.cambio }), h('p', null, txt)));
+    }
+
+    if (!iPlay) {
+      parts.push(h('div', { class: 'espectador' },
+        h('span', { class: 'eyebrow' }, mine && !mine.a ? 'TE HAS QUEDADO SIN VIDAS' : 'ESTÁS MIRANDO'),
+        h('p', { class: 'muted' }, mine && !mine.a ? 'Sigue la partida desde aquí.' : 'Esta partida empezó sin ti. Entrarás en la siguiente.'),
+        h('p', { class: 'estado-turno' }, 'Turno de ', h('b', null, nameOf(snap.cur)))));
+      const tools = hostTurnTools();
+      if (tools) parts.push(tools);
+      return h('section', { class: 'screen' }, parts);
+    }
+
+    const carta = naipe(fx.effect && fx.oldCard && fx.effect !== 'reparto' ? fx.oldCard : card, { up: !cardHidden && !(fx.effect === 'reparto'), cls: 'toca' });
+    onTap(carta, () => { if (animating) return; cardHidden = !cardHidden; carta.classList.toggle('boca-arriba', !cardHidden); });
+    const leyenda = h('div', { class: 'leyenda' });
+    const fill = (c) => leyenda.replaceChildren(h('span', { class: 'carta-nombre' }, cardHidden ? 'Carta tapada' : cardName(c)), h('div', { class: 'orden' }, cardHidden ? [] : cardTags(c)));
+    if (!fx.effect) fill(card);
+    parts.push(h('div', { class: 'mesa' }, h('div', { class: 'halo' }), carta), leyenda, h('p', { class: 'pista' }, 'Toca la carta para taparla o destaparla'));
+
+    const acciones = h('div', { class: 'acciones' });
+    if (myTurn) {
+      const next = nextAliveAfter(me.pid);
+      const busy = !!pendingAct;
+      acciones.append(...[
+        h('p', { class: 'estado-turno' }, h('b', null, 'Te toca.'), ' ¿Te la quedas o la cambias?'),
+        h('div', { class: 'duo' },
+          h('button', { class: 'btn', disabled: busy ? true : null, tap: () => sendAct('keep') }, h('span', { html: ICON.quedar }), 'Me la quedo'),
+          h('button', { class: 'btn rojo', disabled: busy || !next ? true : null, tap: () => sendAct('swap') }, h('span', { html: ICON.cambio }), next ? `Cambiar con ${nameOf(next)}` : 'Cambiar')),
+        snap.cd === me.pid ? h('button', { class: 'btn oro', disabled: busy ? true : null, tap: () => sendAct('draw') }, h('span', { html: ICON.baraja }), 'Levantar baraja') : null,
+        busy ? h('p', { class: 'pista puntos' }, 'Enviando a la mesa') : null].filter(Boolean));
+      if (!fx.effect || fx.effect === 'reparto') vibrate(25);
+    } else {
+      acciones.append(h('p', { class: 'estado-turno' }, 'Turno de ', h('b', null, nameOf(snap.cur)), h('span', { class: 'puntos' })));
+    }
+    const tools = hostTurnTools();
+    if (tools) acciones.append(tools);
+    parts.push(acciones);
+
+    if (fx.effect) animateCard(fx, carta, card, fill);
+    return h('section', { class: 'screen' }, parts);
+  }
+
+  function nextAliveAfter(pid) {
+    const pl = snap.pl;
+    const i = pl.findIndex((x) => x.p === pid);
+    for (let k = 1; k < pl.length; k++) { const x = pl[(i + k) % pl.length]; if (x.a) return x.p; }
+    return null;
+  }
+
+  function hostTurnTools() {
+    if (!host || snap.cur === me.pid) return null;
+    const online = new Set(host.online || []);
+    const ausente = !online.has(snap.cur);
+    return h('div', { class: 'anfitrion-extra' },
+      h('button', { class: `btn chico ${ausente ? 'rojo' : 'fantasma'}`, tap: () => hostApply(snap.cur, { t: 'keep' }) }, `${ausente ? 'Sin conexión: ' : ''}pasar el turno de ${nameOf(snap.cur)}`));
+  }
+
+  function animateCard(fx, carta, card, fill) {
+    animating = true;
+    requestAnimationFrame(async () => {
+      let el = carta;
+      if (fx.effect === 'reparto') {
+        await anim(el, [{ transform: 'translateY(-60%) rotate(-8deg) scale(.8)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 520 });
+      } else {
+        const toRight = fx.effect === 'cambio-mio';
+        const out = fx.effect === 'levanto' ? 'translateY(60%) scale(.8)' : `translateX(${toRight ? 140 : -140}%) rotate(${toRight ? 14 : -14}deg)`;
+        const inFrom = fx.effect === 'levanto' ? 'translateY(-90%) rotate(-6deg) scale(.8)' : `translateX(${toRight ? 140 : -140}%) rotate(${toRight ? 14 : -14}deg)`;
+        if (fx.effect === 'cambio-recibido') vibrate([40, 60, 40]); else vibrate(30);
+        if (el.classList.contains('boca-arriba')) { el.classList.remove('boca-arriba'); await wait(560); }
+        await anim(el, [{ transform: 'none', opacity: 1 }, { transform: out, opacity: 0 }], { duration: 420, easing: 'cubic-bezier(.5,0,.8,.4)' });
+        const nueva = naipe(card, { up: false, cls: 'toca' });
+        onTap(nueva, () => { if (animating) return; cardHidden = !cardHidden; nueva.classList.toggle('boca-arriba', !cardHidden); });
+        el.replaceWith(nueva); el = nueva;
+        await anim(el, [{ transform: inFrom, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 560 });
+      }
+      cardHidden = false;
+      el.classList.add('boca-arriba');
+      await wait(620);
+      if (fx.effect !== 'reparto') el.classList.add('brilla');
+      fill(card);
+      animating = false;
+      if (queued) { queued = false; render(); }
+    });
+  }
+
+  function summary(res) {
+    if (!res.w.length) return 'Empate en la carta más baja: nadie gana';
+    return `${res.w.length > 1 ? 'Ganan' : 'Gana'} ${res.w.map(nameOf).join(', ')} ${res.tw ? 'con un 12' : 'con la carta más baja'}`;
+  }
+
+  function cronica(res) {
+    const b = (pid) => h('b', null, pid === me.pid ? 'Tú' : nameOf(pid));
+    const lines = res.ac.map(([t, pid, other]) => t === 'keep' ? [b(pid), ' se quedó su carta']
+      : t === 'swap' ? [b(pid), ' cambió con ', b(other)]
+        : t === 'draw' ? [b(pid), ' levantó baraja'] : [b(pid), ' pierde por la baraja levantada']);
+    for (const [pid, label, lives, blocked] of res.ef) lines.push(blocked ? [b(pid), ` tenía el ${label}, pero con el pelle no suma`] : [b(pid), ` · ${label}: ${lives > 0 ? '+' : ''}${lives} vida${Math.abs(lives) > 1 ? 's' : ''}`]);
+    if (res.el.length) lines.push([h('b', null, res.el.map(nameOf).join(', ')), ' queda fuera']);
+    return lines.length ? h('div', { class: 'cronica' }, lines.map((l) => h('p', null, l))) : null;
+  }
+
+  function screenReveal(fx) { return revealScreen(fx, false); }
+
+  function revealScreen(fx, over) {
+    const res = snap.res;
+    const animate = !!fx.revealAnim;
+    const rejilla = h('div', { class: 'rejilla' });
+    const items = [];
+    for (const [pid, code] of res.rv) {
+      const card = dec(code);
+      const before = res.lb[pid];
+      const after = res.la[pid];
+      const d = after - before;
+      const win = res.w.includes(pid);
+      const n = naipe(card, { up: !animate, cls: win && !animate ? 'brilla' : (!animate ? 'apagada' : '') });
+      const deltaTxt = d === 0 ? `♥${after}` : `${d > 0 ? '+' : ''}${d} · ♥${after}`;
+      const delta = h('span', { class: `delta ${d < 0 ? 'menos' : d > 0 ? 'mas' : ''}` }, animate ? '' : deltaTxt);
+      const corona = win ? h('span', { class: 'corona', html: CROWN, style: animate ? 'opacity:0' : '' }) : null;
+      rejilla.appendChild(h('div', { class: 'asiento' }, corona, n, h('span', { class: 'nm' }, pid === me.pid ? 'Tú' : nameOf(pid)), delta, res.el.includes(pid) ? h('span', { class: 'fuera' }, 'FUERA') : null));
+      items.push({ n, delta, deltaTxt, win, corona });
+    }
+    const resumen = h('p', { class: 'muted', style: animate ? 'visibility:hidden' : '' }, summary(res));
+    const acciones = h('div', { class: 'acciones' });
+    if (host) {
+      acciones.append(over
+        ? h('button', { class: 'btn oro', tap: () => { sheet = null; renderOverScreen(); } }, 'Ver quién gana')
+        : h('button', { class: 'btn oro', tap: hostNextRound }, 'Siguiente ronda'));
+    } else {
+      acciones.append(h('p', { class: 'estado-turno puntos' }, over ? 'Fin de la partida' : `Esperando a que ${nameOf(snap.host)} reparta`));
+    }
+    const screen = h('section', { class: 'screen' },
+      cabecera(`Ronda ${res.r}`),
+      h('div', { class: 'resultado' }, h('span', { class: 'eyebrow' }, res.tw ? '¡HA SALIDO UN 12!' : `RONDA ${res.r}`), h('h2', null, 'Cartas boca arriba'), resumen),
+      rejilla, cronica(res), acciones);
+    if (animate) {
+      animating = true;
+      requestAnimationFrame(async () => {
+        await wait(350);
+        for (const x of items) { x.n.classList.add('boca-arriba'); await wait(260); }
+        await wait(500);
+        for (const x of items) {
+          if (x.win) { x.n.classList.add('brilla'); if (x.corona) { x.corona.style.opacity = ''; x.corona.classList.add('flota'); } } else x.n.classList.add('apagada');
+          x.delta.textContent = x.deltaTxt; x.delta.classList.add('flota');
+        }
+        resumen.style.visibility = '';
+        vibrate(60);
+        animating = false;
+        if (queued) { queued = false; render(); }
+      });
+    }
+    return screen;
+  }
+
+  let showWinner = false;
+  let overTimer = null;
+  function renderOverScreen() { showWinner = true; render(); }
+
+  function screenOver(fx) {
+    if (!showWinner) {
+      // Primero se ven las cartas de la última ronda; luego quién gana.
+      if (!host && !overTimer) overTimer = setTimeout(() => { overTimer = null; if (snap && snap.ph === 'over') { showWinner = true; render(); } }, 6000);
+      return revealScreen(fx, true);
+    }
+    const winner = snap.win ? P(snap.win) : null;
+    const ranking = snap.pl.slice().sort((a, b) => b.l - a.l || Number(b.a) - Number(a.a));
+    const screen = h('section', { class: 'screen' },
+      cabecera(`Ronda ${snap.r}`),
+      h('div', { class: 'final' },
+        h('span', { class: 'corona-grande', html: CROWN }),
+        h('span', { class: 'eyebrow' }, winner ? 'GANA LA PARTIDA' : 'NADIE SIGUE VIVO'),
+        h('h2', { class: 'ganador' }, winner ? (winner.p === me.pid ? '¡Has ganado!' : winner.n) : 'Sin ganador')),
+      h('div', { class: 'clasif' }, ranking.map((p) => h('div', { class: `fila ${p.p === snap.win ? 'primero' : ''}` }, h('span', null, p.n), h('span', { class: 'muted' }, p.a ? `♥${p.l}` : 'fuera')))),
+      h('div', { class: 'acciones' }, host
+        ? [h('button', { class: 'btn oro', tap: () => { showWinner = false; hostRematch(); } }, 'Revancha con los mismos'),
+          h('button', { class: 'btn fantasma', tap: () => { showWinner = false; hostBackToLobby(); } }, 'Volver a la sala')]
+        : h('p', { class: 'estado-turno puntos' }, `Esperando a que ${nameOf(snap.host)} empiece otra`)));
+    if (winner && !reduceMotion) {
+      const c = h('div', { class: 'confeti', 'aria-hidden': 'true' });
+      const colors = ['#e0ae4c', '#a8231b', '#f4ead3', '#2c4f8c', '#3d7a33'];
+      for (let i = 0; i < 60; i++) c.appendChild(h('i', { style: `left:${Math.random() * 100}%;background:${colors[i % 5]};animation-duration:${2.2 + Math.random() * 2}s;animation-delay:${Math.random() * .8}s` }));
+      screen.appendChild(c);
+      setTimeout(() => c.remove(), 5200);
+    }
+    return screen;
+  }
+
+  // ---------- marcador ----------
+  function renderSheet() {
+    document.querySelectorAll('.velo').forEach((v) => v.remove());
+    if (!sheet) return;
+    const cerrar = () => { sheet = null; renderSheet(); };
+    if (sheet === 'cerrar-mesa') {
+      document.body.appendChild(h('div', { class: 'velo centro' }, h('div', { class: 'dialogo', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Cerrar la mesa' },
+        h('h3', null, '¿Cerrar la mesa?'), h('p', { class: 'muted' }, 'Se acaba la partida para todos.'),
+        h('div', { class: 'duo' }, h('button', { class: 'btn', tap: cerrar }, 'Seguir'),
+          h('button', { class: 'btn rojo', tap: () => { store.del(KEY_HOST); location.reload(); } }, 'Cerrar')))));
+      return;
+    }
+    if (!snap || snap.k !== 'juego') { sheet = null; return; }
+    const jugadores = h('div', { class: 'jugadores' }, snap.pl.map((p) => h('div', { class: `jug ${p.a ? '' : 'fuera'}` },
+      h('span', { class: 'nm' }, p.p === me.pid ? `${p.n} (tú)` : p.n),
+      h('span', { class: 'vidas' }, p.a ? `♥ ${p.l}` : 'fuera'),
+      host ? h('button', { class: 'toggle', 'aria-pressed': String(!!p.pe), tap: () => { try { G.togglePelle(host.state, host.state.hostId, p.p); } catch (e) { toast(e.message); } hostBroadcast(); renderSheet(); } }, p.pe ? 'Tiene pelle' : 'Dar pelle')
+        : h('span', { class: 'muted small' }, p.pe ? 'pelle' : ''))));
+    const historia = h('div', { class: 'historia' });
+    (snap.hi || []).slice().reverse().forEach((e) => {
+      historia.appendChild(h('div', { class: 'ent' }, h('h3', null, `Ronda ${e.r}`),
+        h('p', null, e.rv.map(([pid, code]) => `${nameOf(pid)}: ${cardName(dec(code))}`).join(' · ')),
+        h('p', { class: 'muted' }, e.w.length ? `Gana ${e.w.map(nameOf).join(', ')}${e.tw ? ' con un 12' : ''}` : 'Nadie gana'),
+        h('p', { class: 'muted small' }, Object.entries(e.la).map(([pid, l]) => `${nameOf(pid)} ♥${Math.max(0, l)}`).join(' · '))));
+    });
+    if (!(snap.hi || []).length) historia.appendChild(h('p', { class: 'muted small' }, 'Aún no ha terminado ninguna ronda.'));
+    const velo = h('div', { class: 'velo' }, h('div', { class: 'hoja', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Marcador' },
+      h('div', { class: 'hoja-cab' }, h('h2', null, 'Marcador'), h('button', { class: 'btn chico', tap: cerrar }, 'Cerrar')),
+      h('p', { class: 'muted small' }, host ? 'Quien tiene el pelle no recupera vida con el Rey de bastos.' : 'El pelle lo da la mesa. Con pelle no se recupera vida con el Rey de bastos.'),
+      jugadores, h('span', { class: 'etiqueta' }, 'RONDAS'), historia,
+      host ? h('button', { class: 'btn fantasma', tap: () => { sheet = 'cerrar-mesa'; renderSheet(); } }, 'Cerrar la mesa') : null));
+    velo.addEventListener('click', (e) => { if (e.target === velo) cerrar(); });
+    document.body.appendChild(velo);
+  }
+
+  let connOk = true;
+  function renderConnection() {
+    document.querySelectorAll('.conexion').forEach((n) => n.remove());
+    const stale = snap && !host && Date.now() - lastSnapAt > 12000;
+    if (!connOk || stale) document.body.appendChild(h('div', { class: 'conexion', role: 'status' }, stale ? 'No llega nada de la mesa…' : 'Reconectando…'));
+  }
+
+  // =====================================================================
+  //  ARRANQUE
+  // =====================================================================
+  const bootAt = Date.now();
+
+  async function boot() {
+    render();
+    if (TEST_MODE) {
+      room = mockRoom();
+      canHost = true;
+    } else {
+      const c = window.claude;
+      const [r, u] = c && c.use ? await Promise.all([c.use('room').catch(() => null), c.use('user').catch(() => null)]) : [null, null];
+      room = r;
+      canHost = u ? await u.canEdit().catch(() => false) : false;
+    }
+    if (!room) { netStatus = 'sin-sala'; render(); return; }
+    netStatus = 'listo';
+
+    room.on('estado', (msg) => {
+      if (msg.sameTab) return;
+      const d = msg.data;
+      if (!d || typeof d !== 'object') return;
+      if (hostPeer && msg.peer !== hostPeer && Date.now() - lastSnapAt < 15000) return; // una sola mesa a la vez
+      hostPeer = msg.peer;
+      receive(d, false);
+    }, () => { connOk = false; renderConnection(); });
+    room.onPeers((ch) => { hostOnPeers(ch.peers); }, () => {});
+    if (room.onConnection) room.onConnection((ok) => { connOk = ok; renderConnection(); });
+
+    room.presence({ pid: me.pid, n: me.name || '' });
+    if (store.get(KEY_HOST) && canHost) {
+      if (!me.name) me.name = 'Mesa';
+      startHosting();
+    }
+    render();
+    setTimeout(() => { if (!snap) render(); }, 6200);
+    setInterval(renderConnection, 4000);
+    try { if (navigator.wakeLock) navigator.wakeLock.request('screen').catch(() => {}); } catch (_) { /* sin bloqueo de pantalla */ }
+  }
+
+  boot();
+})();
+</script>

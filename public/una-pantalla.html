@@ -1,0 +1,1539 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icono.svg" type="image/svg+xml">
+</head>
+<body>
+<meta charset="utf-8">
+<title>La Rata</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#0b2e22">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="La Rata">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@500;700;800&family=Alegreya+Sans:wght@400;500;700&display=swap">
+<style>
+/* Mesa de tapete vista desde arriba: una sola columna para un móvil que pasa de mano en mano.
+   Mundo visual: tapete verde de bar, naipe Fournier crema con marco rojo, dorso rojo con la rata. */
+:root {
+  --tapete: #0f3b2c;
+  --tapete-hondo: #072318;
+  --tapete-luz: #1c5a42;
+  --naipe: #f4ead3;
+  --naipe-sombra: #e2d3b0;
+  --rojo: #a8231b;
+  --rojo-hondo: #6f140f;
+  --oro: #e0ae4c;
+  --oro-hondo: #9a6a1d;
+  --tinta: #1d1812;
+  --fg: #efe6d0;
+  --muted: #a6b9a8;
+  --linea: rgba(239, 230, 208, 0.14);
+  --bien: #8fd6a0;
+  --mal: #f08a74;
+  --display: "Alegreya SC", "Iowan Old Style", Georgia, serif;
+  --body: "Alegreya Sans", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.4;
+  color: var(--fg);
+  background:
+    radial-gradient(120% 70% at 50% 0%, var(--tapete-luz) 0%, transparent 60%),
+    radial-gradient(140% 100% at 50% 100%, var(--tapete-hondo) 0%, transparent 70%),
+    var(--tapete);
+  background-attachment: fixed;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+/* grano de fieltro */
+body::after {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.35;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .22 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+#app {
+  position: relative; z-index: 1;
+  min-height: 100%;
+  max-width: 520px; margin: 0 auto;
+  display: flex; flex-direction: column;
+  padding-block: 14px 20px;
+}
+.screen { display: flex; flex-direction: column; gap: 18px; flex: 1; animation: entra .35s ease-out both; }
+@keyframes entra { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+h1, h2, h3 { font-family: var(--display); font-weight: 700; margin: 0; text-wrap: balance; letter-spacing: 0.02em; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.small { font-size: 0.88rem; }
+.eyebrow { font-family: var(--display); font-size: 0.82rem; letter-spacing: 0.14em; color: var(--oro); }
+
+/* ---------- botones ---------- */
+button { font: inherit; color: inherit; }
+.btn {
+  appearance: none; border: 1px solid var(--linea); background: rgba(0, 0, 0, 0.22);
+  min-height: 52px; padding: 12px 18px; border-radius: 14px;
+  font-weight: 700; font-size: 1.02rem; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  transition: transform .12s ease, background .2s ease, border-color .2s;
+  touch-action: manipulation; user-select: none; -webkit-user-select: none;
+}
+.btn:active { transform: scale(0.97); }
+.btn:focus-visible { outline: 3px solid var(--oro); outline-offset: 2px; }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn.oro {
+  background: linear-gradient(180deg, #f3cd78, var(--oro) 55%, #c98f2c);
+  color: #24170a; border-color: #f6d998;
+  box-shadow: 0 6px 0 var(--oro-hondo), 0 10px 22px rgba(0, 0, 0, .35);
+}
+.btn.oro:active { transform: translateY(3px); box-shadow: 0 3px 0 var(--oro-hondo), 0 6px 14px rgba(0, 0, 0, .35); }
+.btn.rojo {
+  background: linear-gradient(180deg, #c8372c, var(--rojo)); color: var(--naipe); border-color: #d9574b;
+  box-shadow: 0 6px 0 var(--rojo-hondo), 0 10px 22px rgba(0, 0, 0, .35);
+}
+.btn.rojo:active { transform: translateY(3px); box-shadow: 0 3px 0 var(--rojo-hondo); }
+.btn.fantasma { background: transparent; border-color: transparent; color: var(--muted); min-height: 44px; font-weight: 500; }
+.btn.chico { min-height: 40px; padding: 8px 14px; font-size: .92rem; border-radius: 12px; }
+.btn svg { width: 20px; height: 20px; flex-shrink: 0; }
+.acciones { display: flex; flex-direction: column; gap: 12px; margin-top: auto; }
+
+/* ---------- cabecera ---------- */
+.cabecera { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; }
+.marca { font-family: var(--display); font-weight: 800; font-size: 1.15rem; letter-spacing: .12em; color: var(--oro); display: flex; align-items: center; gap: 8px; }
+.marca svg { width: 30px; height: 20px; }
+.ronda { font-size: .88rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* ---------- configuración ---------- */
+.portada { display: grid; place-items: center; gap: 6px; padding-top: 8px; text-align: center; }
+.abanico { position: relative; width: 210px; height: 150px; margin-bottom: 4px; }
+.abanico .naipe { position: absolute; left: 50%; top: 10px; --w: 86px; transform-origin: 50% 120%; }
+.abanico .naipe:nth-child(1) { transform: translateX(-50%) rotate(-18deg); animation: abre1 .8s .1s cubic-bezier(.2,.9,.2,1) both; }
+.abanico .naipe:nth-child(2) { transform: translateX(-50%) rotate(0deg); animation: abre2 .8s .1s cubic-bezier(.2,.9,.2,1) both; }
+.abanico .naipe:nth-child(3) { transform: translateX(-50%) rotate(18deg); animation: abre3 .8s .1s cubic-bezier(.2,.9,.2,1) both; }
+@keyframes abre1 { from { transform: translateX(-50%) rotate(0); } }
+@keyframes abre2 { from { transform: translateX(-50%) translateY(6px); } }
+@keyframes abre3 { from { transform: translateX(-50%) rotate(0); } }
+.titulo { font-size: clamp(2.8rem, 13vw, 3.8rem); font-weight: 800; letter-spacing: .08em; line-height: 1; color: var(--naipe); text-shadow: 0 3px 0 var(--rojo-hondo), 0 8px 24px rgba(0,0,0,.45); }
+
+.bloque { display: flex; flex-direction: column; gap: 10px; }
+.bloque > label, .etiqueta { font-family: var(--display); font-size: .85rem; letter-spacing: .12em; color: var(--oro); }
+.fichas { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.ficha {
+  appearance: none; min-height: 46px; border-radius: 50%; aspect-ratio: 1; max-width: 100%;
+  border: 2px dashed rgba(239, 230, 208, .28); background: rgba(0,0,0,.2);
+  font-family: var(--display); font-weight: 800; font-size: 1.15rem; cursor: pointer;
+  display: grid; place-items: center; padding: 0;
+}
+.ficha[aria-pressed="true"] { background: radial-gradient(circle at 35% 30%, #f6d58a, var(--oro) 60%, #b07a22); color: #24170a; border: 2px solid #f6d998; box-shadow: 0 3px 0 var(--oro-hondo); }
+.ficha:focus-visible { outline: 3px solid var(--oro); outline-offset: 2px; }
+
+.nombres { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.campo { position: relative; }
+.campo input, .campo select, select.campo {
+  width: 100%; min-height: 48px; padding: 10px 12px 10px 40px; font: inherit; font-size: 16px;
+  color: var(--fg); background: rgba(0, 0, 0, .28); border: 1px solid var(--linea); border-radius: 12px;
+}
+.campo input:focus, select:focus { outline: 2px solid var(--oro); outline-offset: 1px; }
+.campo .num { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: .75rem; font-weight: 700; background: var(--naipe); color: var(--tinta); }
+select.campo { padding-left: 12px; }
+
+.ajustes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.contador { display: flex; align-items: center; justify-content: space-between; gap: 6px; background: rgba(0,0,0,.22); border: 1px solid var(--linea); border-radius: 14px; padding: 6px; }
+.contador button { appearance: none; width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--linea); background: rgba(255,255,255,.05); font-size: 1.3rem; font-weight: 700; cursor: pointer; }
+.contador output { font-family: var(--display); font-size: 1.5rem; font-weight: 800; font-variant-numeric: tabular-nums; min-width: 2ch; text-align: center; }
+.contador-caja { display: flex; flex-direction: column; gap: 6px; }
+.contador-caja .etiqueta { font-size: .75rem; }
+
+details.reglas { border: 1px solid var(--linea); border-radius: 14px; padding: 12px 14px; background: rgba(0,0,0,.16); }
+details.reglas summary { cursor: pointer; font-family: var(--display); letter-spacing: .1em; color: var(--oro); }
+details.reglas ul { margin: 10px 0 0; padding-left: 18px; display: grid; gap: 6px; font-size: .95rem; }
+
+/* ---------- naipe ---------- */
+.naipe {
+  --w: 90px;
+  width: var(--w); height: calc(var(--w) * 1.55);
+  perspective: 900px; flex-shrink: 0; position: relative;
+}
+.naipe-in { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform .6s cubic-bezier(.3,.7,.2,1); }
+.naipe.boca-arriba .naipe-in { transform: rotateY(180deg); }
+.cara, .dorso {
+  position: absolute; inset: 0; border-radius: calc(var(--w) * .08);
+  backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow: hidden;
+  box-shadow: 0 calc(var(--w) * .05) calc(var(--w) * .14) rgba(0, 0, 0, .45), 0 0 0 1px rgba(0,0,0,.25);
+}
+.dorso {
+  background:
+    repeating-linear-gradient(45deg, rgba(255,214,190,.13) 0 2px, transparent 2px 9px),
+    repeating-linear-gradient(-45deg, rgba(255,214,190,.13) 0 2px, transparent 2px 9px),
+    radial-gradient(circle at 50% 50%, #c0302a, #8f1913 75%);
+  border: calc(var(--w) * .045) solid var(--naipe);
+  display: grid; place-items: center;
+}
+.dorso::before { content: ""; position: absolute; inset: calc(var(--w) * .04); border: 1px solid rgba(244,234,211,.6); border-radius: calc(var(--w) * .05); }
+.dorso .ovalo { width: 62%; aspect-ratio: .78; border-radius: 50%; background: var(--rojo-hondo); border: 2px solid var(--naipe); display: grid; place-items: center; box-shadow: 0 0 0 3px #8f1913, 0 0 0 4px rgba(244,234,211,.5); }
+.dorso .ovalo svg { width: 78%; }
+.cara { transform: rotateY(180deg); background: linear-gradient(165deg, #fbf4e2, var(--naipe) 55%, var(--naipe-sombra)); color: var(--tinta); }
+/* marco rojo con la "pinta": cortes que indican el palo (copas 1, espadas 2, bastos 3, oros ninguno) */
+.marco { position: absolute; inset: calc(var(--w) * .07); border: max(1.5px, calc(var(--w) * .014)) solid var(--rojo); border-radius: calc(var(--w) * .03); }
+.pinta { position: absolute; height: calc(var(--w) * .06); width: calc(var(--w) * .07); background: var(--naipe); }
+.pinta.arriba { top: calc(var(--w) * .045); }
+.pinta.abajo { bottom: calc(var(--w) * .045); }
+.indice { position: absolute; font-family: var(--display); font-weight: 800; font-size: calc(var(--w) * .2); line-height: 1; color: var(--tinta); }
+.indice.ar { top: calc(var(--w) * .1); left: calc(var(--w) * .11); }
+.indice.ab { bottom: calc(var(--w) * .1); right: calc(var(--w) * .11); transform: rotate(180deg); }
+.pips { position: absolute; inset: calc(var(--w) * .2) calc(var(--w) * .16); }
+.pip { position: absolute; width: calc(var(--w) * .3); transform: translate(-50%, -50%); }
+.pip svg, .emblema svg { display: block; width: 100%; height: auto; }
+.pip.grande { width: calc(var(--w) * .58); }
+.figura { position: absolute; inset: calc(var(--w) * .2) calc(var(--w) * .14); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--w) * .04); border: 1px solid rgba(168,35,27,.35); border-radius: calc(var(--w) * .04); background: linear-gradient(180deg, rgba(224,174,76,.18), rgba(168,35,27,.08)); }
+.figura .emblema { width: calc(var(--w) * .34); }
+.figura .palo { width: calc(var(--w) * .34); }
+.figura .nombre { font-family: var(--display); font-weight: 800; font-size: calc(var(--w) * .12); letter-spacing: .08em; color: var(--rojo); }
+.naipe.brilla .cara { box-shadow: 0 0 0 calc(var(--w) * .03) var(--oro), 0 0 calc(var(--w) * .35) rgba(224,174,76,.75); }
+.naipe.apagada { filter: saturate(.4) brightness(.8); }
+
+/* ---------- pasar el móvil ---------- */
+.pasa { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; padding-top: 10px; }
+.pasa .moneda { width: 96px; height: 96px; border-radius: 50%; display: grid; place-items: center; font-family: var(--display); font-weight: 800; font-size: 2.6rem; color: #24170a; background: radial-gradient(circle at 35% 30%, #f8dc98, var(--oro) 60%, #a8721e); box-shadow: inset 0 0 0 4px rgba(255,255,255,.25), inset 0 0 0 8px rgba(154,106,29,.6), 0 10px 30px rgba(0,0,0,.45); animation: late 2.2s ease-in-out infinite; }
+@keyframes late { 50% { transform: translateY(-4px) rotate(-3deg); } }
+.pasa .quien { font-size: clamp(2rem, 10vw, 2.8rem); color: var(--naipe); line-height: 1.05; overflow-wrap: anywhere; }
+.aviso-privado { display: flex; gap: 10px; align-items: center; justify-content: center; font-size: .92rem; color: var(--muted); }
+.aviso-privado svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+.orden { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.turno-ficha { display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 999px; background: rgba(0,0,0,.25); border: 1px solid var(--linea); font-size: .9rem; max-width: 100%; }
+.turno-ficha .ini { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: rgba(239,230,208,.14); font-weight: 700; font-size: .8rem; flex-shrink: 0; }
+.turno-ficha .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 9ch; }
+.turno-ficha .vidas { color: var(--mal); font-weight: 700; font-variant-numeric: tabular-nums; }
+.turno-ficha .hizo { font-size: .76rem; color: var(--muted); }
+.turno-ficha.ahora { border-color: var(--oro); background: rgba(224,174,76,.16); box-shadow: 0 0 0 3px rgba(224,174,76,.18); }
+.turno-ficha.ahora .ini { background: var(--oro); color: #24170a; }
+.turno-ficha.hecho { opacity: .65; }
+.turno-ficha.pelle .ini { box-shadow: 0 0 0 2px var(--mal); }
+
+/* ---------- turno ---------- */
+.mesa { position: relative; display: grid; place-items: center; padding: 8px 0 4px; min-height: 0; }
+.mesa .naipe { --w: min(58vw, 230px); }
+.mesa .halo { position: absolute; width: 80%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(224,174,76,.22), transparent 65%); pointer-events: none; }
+.leyenda { text-align: center; display: flex; flex-direction: column; gap: 6px; align-items: center; min-height: 3.4em; }
+.leyenda .carta-nombre { font-family: var(--display); font-size: 1.5rem; color: var(--naipe); }
+.sello { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: .84rem; font-weight: 700; }
+.sello.malo { background: rgba(240,138,116,.16); color: var(--mal); border: 1px solid rgba(240,138,116,.4); }
+.sello.bueno { background: rgba(143,214,160,.14); color: var(--bien); border: 1px solid rgba(143,214,160,.4); }
+.sello.oro { background: rgba(224,174,76,.16); color: var(--oro); border: 1px solid rgba(224,174,76,.45); }
+
+.banner-cambio {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px;
+  background: linear-gradient(90deg, rgba(168,35,27,.55), rgba(168,35,27,.2)); border: 1px solid rgba(240,138,116,.45);
+  animation: cae .55s cubic-bezier(.2,1.3,.4,1) both;
+}
+.banner-cambio svg { width: 28px; height: 28px; flex-shrink: 0; color: var(--oro); }
+.banner-cambio strong { color: var(--naipe); }
+@keyframes cae { from { opacity: 0; transform: translateY(-16px) scale(.96); } }
+
+.duo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ---------- revelar ---------- */
+.resultado { text-align: center; display: flex; flex-direction: column; gap: 6px; align-items: center; }
+.resultado h2 { font-size: 1.9rem; color: var(--naipe); }
+.rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 14px 10px; justify-items: center; }
+.asiento { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; min-width: 0; width: 100%; position: relative; }
+.asiento .naipe { --w: 74px; }
+.asiento .nm { font-weight: 700; font-size: .92rem; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.asiento .delta { font-family: var(--display); font-weight: 800; font-size: 1.05rem; font-variant-numeric: tabular-nums; min-height: 1.3em; }
+.asiento .delta.menos { color: var(--mal); }
+.asiento .delta.mas { color: var(--bien); }
+.asiento .fuera { font-size: .74rem; letter-spacing: .1em; color: var(--mal); font-family: var(--display); }
+.asiento .corona { position: absolute; top: -14px; width: 30px; color: var(--oro); filter: drop-shadow(0 2px 4px rgba(0,0,0,.5)); }
+.flota { animation: flota 1.4s ease-out both; }
+@keyframes flota { 0% { opacity: 0; transform: translateY(10px) scale(.7); } 25% { opacity: 1; transform: translateY(0) scale(1.15); } 100% { opacity: 1; transform: none; } }
+.cronica { border-top: 1px solid var(--linea); padding-top: 12px; display: grid; gap: 4px; font-size: .9rem; color: var(--muted); }
+.cronica b { color: var(--fg); font-weight: 700; }
+
+/* ---------- final ---------- */
+.final { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; padding-top: 18px; }
+.final .corona-grande { width: 92px; color: var(--oro); animation: corona 1.2s cubic-bezier(.2,1.4,.4,1) both; filter: drop-shadow(0 6px 16px rgba(0,0,0,.5)); }
+@keyframes corona { from { transform: translateY(-30px) rotate(-12deg) scale(.6); opacity: 0; } }
+.final .ganador { font-size: clamp(2.4rem, 12vw, 3.4rem); color: var(--naipe); overflow-wrap: anywhere; }
+.clasif { width: 100%; display: grid; gap: 6px; }
+.clasif .fila { display: flex; justify-content: space-between; gap: 10px; padding: 10px 14px; border-radius: 12px; background: rgba(0,0,0,.22); }
+.clasif .fila.primero { background: rgba(224,174,76,.16); border: 1px solid rgba(224,174,76,.4); }
+.confeti { position: fixed; inset: 0; pointer-events: none; z-index: 5; overflow: hidden; }
+.confeti i { position: absolute; top: -20px; width: 10px; height: 16px; border-radius: 2px; animation: lluvia linear forwards; }
+@keyframes lluvia { to { transform: translateY(110vh) rotate(720deg); } }
+
+/* ---------- hoja (marcador) y diálogo ---------- */
+.velo { position: fixed; inset: 0; background: rgba(2, 10, 7, .72); z-index: 20; display: flex; align-items: flex-end; justify-content: center; animation: aparece .2s ease-out both; }
+@keyframes aparece { from { opacity: 0; } }
+.hoja {
+  width: 100%; max-width: 560px; max-height: 86%; overflow-y: auto;
+  background: #0b2a1f; border: 1px solid var(--linea); border-bottom: 0; border-radius: 22px 22px 0 0;
+  padding: 18px max(18px, env(safe-area-inset-left, 0px)) calc(22px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 16px; animation: sube .3s cubic-bezier(.2,.9,.2,1) both;
+}
+@keyframes sube { from { transform: translateY(100%); } }
+.hoja-cab { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.jugadores { display: grid; gap: 8px; }
+.jug { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: rgba(0,0,0,.25); }
+.jug .nm { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.jug .vidas { color: var(--mal); font-weight: 700; font-variant-numeric: tabular-nums; }
+.jug.fuera { opacity: .5; }
+.toggle { appearance: none; border: 1px solid var(--linea); background: transparent; border-radius: 999px; padding: 6px 12px; font-size: .85rem; font-weight: 700; cursor: pointer; min-height: 36px; }
+.toggle[aria-pressed="true"] { background: rgba(240,138,116,.2); border-color: var(--mal); color: var(--mal); }
+.historia { display: grid; gap: 10px; }
+.historia .ent { padding: 10px 12px; border-radius: 12px; border: 1px solid var(--linea); font-size: .9rem; display: grid; gap: 4px; }
+.historia .ent h3 { font-size: 1rem; color: var(--oro); }
+.dialogo { margin: auto 16px; max-width: 400px; width: 100%; background: #0b2a1f; border: 1px solid var(--linea); border-radius: 20px; padding: 20px; display: grid; gap: 16px; text-align: center; animation: entra .25s ease-out both; }
+.velo.centro { align-items: center; }
+
+.toast { position: fixed; left: 50%; top: calc(14px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); z-index: 40; background: #1c130d; border: 1px solid var(--mal); color: var(--naipe); padding: 10px 16px; border-radius: 12px; max-width: calc(100% - 32px); text-align: center; animation: entra .2s ease-out both; }
+
+@media (max-width: 360px) {
+  .nombres, .ajustes { grid-template-columns: 1fr; }
+  .fichas { grid-template-columns: repeat(4, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0ms !important; transition-duration: .01ms !important; }
+}
+</style>
+
+<div id="app"></div>
+
+<script>
+'use strict';
+
+/**
+ * Lógica pura de LA RATA. No conoce sockets ni HTTP.
+ * El servidor usa publicView() para decidir qué ve cada jugador:
+ * nadie recibe las cartas de los demás durante la ronda.
+ *
+ * Convenciones:
+ *  - Los asientos son los índices de state.players (orden de entrada en la sala).
+ *  - El "siguiente" de un jugador es el asiento siguiente vivo (seat + 1). Es con quien puede intercambiar.
+ *  - El orden de turnos sigue ese sentido y termina con quien empieza la ronda.
+ */
+
+const SUITS = ['oros', 'copas', 'espadas', 'bastos'];
+// Valores de la baraja española de 40 cartas (sin 8 y 9).
+const RANKS = [1, 2, 3, 4, 5, 6, 7, 10, 11, 12];
+const TIE_POLICIES = ['empate_todos_ganan', 'empate_todos_pierden'];
+const MAX_LIVES = 99;
+const MAX_PLAYERS_LIMIT = 10;
+const TWELVE = 12;
+
+/*
+ * PARÁMETROS
+ *  - lives: vidas iniciales (acordado: 2).
+ *  - livesLostPerRound: vidas que pierde cada perdedor de la ronda (provisional: 1).
+ *  - tiePolicy: empate en la carta más baja (provisional):
+ *      'empate_todos_ganan'   -> los empatados ganan; el resto pierde vidas.
+ *      'empate_todos_pierden' -> los empatados pierden vidas; el resto no.
+ */
+const DEFAULT_CONFIG = Object.freeze({
+  lives: 2,
+  livesLostPerRound: 1,
+  tiePolicy: 'empate_todos_ganan',
+  minPlayers: 2,
+  maxPlayers: 8,
+});
+
+// Efectos automáticos de las cartas especiales. Se aplican al revelar la ronda
+// al jugador que tiene la carta en ese momento.
+// Con "pelle" no se recupera vida con el Rey de bastos.
+const SPECIAL_EFFECTS = Object.freeze([
+  { suit: 'bastos', rank: 1, lives: -2, label: 'As de bastos', blockedByPelle: false },
+  { suit: 'bastos', rank: 12, lives: 1, label: 'Rey de bastos', blockedByPelle: true },
+]);
+
+class GameError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'GameError';
+    this.userError = true; // mensaje seguro para mostrar al jugador
+  }
+}
+
+function fail(message) {
+  return new GameError(message);
+}
+
+function specialEffectFor(card) {
+  return SPECIAL_EFFECTS.find((e) => e.suit === card.suit && e.rank === card.rank) || null;
+}
+
+function createDeck() {
+  const deck = [];
+  for (const suit of SUITS) {
+    for (const rank of RANKS) deck.push({ suit, rank });
+  }
+  return deck;
+}
+
+function shuffle(items, rng = Math.random) {
+  const a = items.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function normalizeConfig(patch = {}, base = DEFAULT_CONFIG) {
+  const c = { ...base };
+  // Solo se aceptan claves conocidas; el resto se ignora.
+  for (const key of Object.keys(DEFAULT_CONFIG)) {
+    if (patch && key in patch) c[key] = patch[key];
+  }
+  for (const key of ['lives', 'livesLostPerRound', 'minPlayers', 'maxPlayers']) {
+    if (!Number.isInteger(c[key])) throw fail(`El valor de ${key} debe ser un número entero`);
+  }
+  if (c.lives < 1 || c.lives > MAX_LIVES) throw fail(`Las vidas iniciales deben estar entre 1 y ${MAX_LIVES}`);
+  if (c.livesLostPerRound < 1 || c.livesLostPerRound > MAX_LIVES) {
+    throw fail(`Las vidas perdidas por ronda deben estar entre 1 y ${MAX_LIVES}`);
+  }
+  if (c.minPlayers < 2) throw fail('Se necesitan al menos 2 jugadores');
+  if (c.maxPlayers > MAX_PLAYERS_LIMIT) throw fail(`Máximo ${MAX_PLAYERS_LIMIT} jugadores`);
+  if (c.minPlayers > c.maxPlayers) throw fail('El mínimo de jugadores no puede superar al máximo');
+  if (!TIE_POLICIES.includes(c.tiePolicy)) throw fail('Política de empate no válida');
+  return c;
+}
+
+function sanitizeName(name) {
+  const clean = typeof name === 'string' ? name.replace(/\s+/g, ' ').trim() : '';
+  if (clean.length < 1 || clean.length > 20) throw fail('El nombre debe tener entre 1 y 20 caracteres');
+  return clean;
+}
+
+function createGame(configPatch = {}) {
+  return {
+    phase: 'lobby', // lobby | turns | reveal | over
+    config: normalizeConfig(configPatch),
+    players: [], // { id, token, name, lives, alive, card, connected, pelle }
+    hostId: null,
+    round: 0,
+    starterSeat: 0,
+    deck: [], // cartas no repartidas en la ronda actual
+    turnOrder: [], // ids de jugadores que actúan en la ronda actual, en orden
+    turnIdx: 0,
+    roundActions: [], // acciones públicas de la ronda (sin revelar cartas)
+    penalized: [], // jugadores que pierden por un levantamiento de baraja
+    revealed: [], // cartas de la última ronda revelada
+    history: [],
+    winnerId: null,
+  };
+}
+
+// ---------- helpers de consulta ----------
+
+function playerById(state, id) {
+  return state.players.find((p) => p.id === id) || null;
+}
+
+function seatOf(state, id) {
+  return state.players.findIndex((p) => p.id === id);
+}
+
+function alivePlayers(state) {
+  return state.players.filter((p) => p.alive);
+}
+
+function currentPlayerId(state) {
+  return state.phase === 'turns' ? state.turnOrder[state.turnIdx] : null;
+}
+
+/** Jugadores que participan en la ronda actual (en orden de turno). */
+function participants(state) {
+  return state.turnOrder.map((id) => playerById(state, id));
+}
+
+/** Siguiente asiento vivo en la dirección `step` (+1 o -1), distinto de `seat`. */
+function neighborSeat(state, seat, step) {
+  const n = state.players.length;
+  for (let k = 1; k < n; k++) {
+    const s = (((seat + step * k) % n) + n) % n;
+    if (state.players[s].alive) return s;
+  }
+  return null;
+}
+
+function requireHost(state, actorId) {
+  if (state.hostId !== actorId) throw fail('Solo el anfitrión puede hacer esto');
+}
+
+function requirePhase(state, ...phases) {
+  if (!phases.includes(state.phase)) throw fail('Esta acción no está disponible ahora');
+}
+
+/** Puede levantar baraja: quien empieza la ronda, en su turno final, con la carta más baja de la mesa. */
+function canDraw(state, playerId) {
+  if (state.phase !== 'turns') return false;
+  if (state.turnOrder[state.turnOrder.length - 1] !== playerId) return false;
+  if (state.turnIdx !== state.turnOrder.length - 1) return false;
+  const ps = participants(state);
+  const me = playerById(state, playerId);
+  if (!me || !me.card) return false;
+  const minRank = Math.min(...ps.map((p) => p.card.rank));
+  return me.card.rank === minRank && state.deck.length > 0;
+}
+
+function anyTwelve(state) {
+  return participants(state).some((p) => p.card && p.card.rank === TWELVE);
+}
+
+// ---------- sala (lobby) ----------
+
+function addPlayer(state, { id, token, name }) {
+  requirePhase(state, 'lobby');
+  if (state.players.length >= state.config.maxPlayers) throw fail('La sala está llena');
+  const clean = sanitizeName(name);
+  if (state.players.some((p) => p.name.toLowerCase() === clean.toLowerCase())) {
+    throw fail('Ese nombre ya está en uso en esta sala');
+  }
+  const player = {
+    id,
+    token,
+    name: clean,
+    lives: state.config.lives,
+    alive: true,
+    card: null,
+    connected: true,
+    pelle: false,
+  };
+  state.players.push(player);
+  if (!state.hostId) state.hostId = id;
+  return player;
+}
+
+function removePlayer(state, id) {
+  requirePhase(state, 'lobby');
+  state.players = state.players.filter((p) => p.id !== id);
+  if (state.hostId === id) state.hostId = state.players[0] ? state.players[0].id : null;
+}
+
+function setConnected(state, id, connected) {
+  const p = playerById(state, id);
+  if (p) p.connected = connected;
+}
+
+function updateConfig(state, actorId, patch) {
+  requireHost(state, actorId);
+  requirePhase(state, 'lobby');
+  state.config = normalizeConfig(patch, state.config);
+  return state.config;
+}
+
+/** El anfitrión marca o quita el pelle a un jugador. */
+/** El anfitrión mueve a un jugador un asiento arriba (-1) o abajo (+1) en la sala, para que el orden coincida con la mesa real. */
+function movePlayer(state, actorId, targetId, delta) {
+  requireHost(state, actorId);
+  requirePhase(state, 'lobby');
+  if (delta !== -1 && delta !== 1) throw fail('Movimiento no válido');
+  const i = seatOf(state, targetId);
+  if (i < 0) throw fail('Jugador no encontrado');
+  const j = i + delta;
+  if (j < 0 || j >= state.players.length) return;
+  [state.players[i], state.players[j]] = [state.players[j], state.players[i]];
+}
+
+/** El anfitrión saca a un jugador de la sala de espera. */
+function kickPlayer(state, actorId, targetId) {
+  requireHost(state, actorId);
+  requirePhase(state, 'lobby');
+  if (targetId === actorId) throw fail('No puedes sacarte a ti mismo');
+  if (!playerById(state, targetId)) throw fail('Jugador no encontrado');
+  removePlayer(state, targetId);
+}
+
+/** El anfitrión juega "me la quedo" por el jugador de turno (por ejemplo, si se ha desconectado). */
+function forceKeep(state, actorId) {
+  requireHost(state, actorId);
+  requirePhase(state, 'turns');
+  keep(state, currentPlayerId(state));
+}
+
+/** Pasa el papel de anfitrión a otro jugador (por ejemplo, si el anfitrión se desconecta). */
+function setHost(state, playerId) {
+  if (!playerById(state, playerId)) throw fail('Jugador no encontrado');
+  state.hostId = playerId;
+}
+
+function togglePelle(state, actorId, targetId) {
+  requireHost(state, actorId);
+  const target = playerById(state, targetId);
+  if (!target) throw fail('Jugador no encontrado');
+  target.pelle = !target.pelle;
+  return target.pelle;
+}
+
+// ---------- rondas ----------
+
+function startRound(state, rng) {
+  const alive = alivePlayers(state);
+  const deck = shuffle(createDeck(), rng);
+  alive.forEach((p, i) => { p.card = deck[i]; });
+  state.deck = deck.slice(alive.length);
+
+  // Orden de turnos: juega primero el siguiente al que empieza la ronda, y el que empieza la ronda juega el último.
+  const n = state.players.length;
+  const order = [];
+  for (let k = 1; k <= n; k++) {
+    const seat = (state.starterSeat + k) % n;
+    if (state.players[seat].alive) order.push(state.players[seat].id);
+  }
+
+  state.round += 1;
+  state.turnOrder = order;
+  state.turnIdx = 0;
+  state.roundActions = [];
+  state.penalized = [];
+  state.revealed = [];
+  state.phase = 'turns';
+
+  // Un 12 repartido gana la ronda de inmediato.
+  if (anyTwelve(state)) resolveRound(state);
+}
+
+function startGame(state, actorId, rng = Math.random) {
+  requireHost(state, actorId);
+  requirePhase(state, 'lobby');
+  if (state.players.length < state.config.minPlayers) {
+    throw fail(`Faltan jugadores (mínimo ${state.config.minPlayers})`);
+  }
+  for (const p of state.players) {
+    p.lives = state.config.lives;
+    p.alive = true;
+    p.card = null;
+    p.pelle = false;
+  }
+  state.starterSeat = 0;
+  startRound(state, rng);
+}
+
+/** Vuelve a la sala tras una partida terminada, conservando jugadores y configuración. */
+function restartLobby(state, actorId) {
+  requireHost(state, actorId);
+  requirePhase(state, 'over');
+  Object.assign(state, {
+    phase: 'lobby',
+    round: 0,
+    starterSeat: 0,
+    deck: [],
+    turnOrder: [],
+    turnIdx: 0,
+    roundActions: [],
+    penalized: [],
+    revealed: [],
+    history: [],
+    winnerId: null,
+  });
+  for (const p of state.players) p.pelle = false;
+}
+
+function nextRound(state, actorId, rng = Math.random) {
+  requireHost(state, actorId);
+  requirePhase(state, 'reveal');
+  state.starterSeat = neighborSeat(state, state.starterSeat, +1);
+  startRound(state, rng);
+}
+
+function assertTurn(state, actorId) {
+  requirePhase(state, 'turns');
+  if (currentPlayerId(state) !== actorId) throw fail('No es tu turno');
+}
+
+function advanceTurn(state) {
+  state.turnIdx += 1;
+  if (state.turnIdx >= state.turnOrder.length) resolveRound(state);
+}
+
+function keep(state, actorId) {
+  assertTurn(state, actorId);
+  state.roundActions.push({ type: 'keep', playerId: actorId });
+  advanceTurn(state);
+}
+
+/** Intercambia tu carta con la del siguiente jugador (el que juega después de ti). */
+function swap(state, actorId) {
+  assertTurn(state, actorId);
+  const seat = seatOf(state, actorId);
+  const neighborIdx = neighborSeat(state, seat, +1);
+  if (neighborIdx === null) throw fail('No hay siguiente jugador con quien intercambiar');
+
+  const me = state.players[seat];
+  const other = state.players[neighborIdx];
+  [me.card, other.card] = [other.card, me.card];
+
+  // Pública, pero sin revelar qué carta se ha movido.
+  state.roundActions.push({ type: 'swap', playerId: actorId, neighborId: other.id });
+  if (anyTwelve(state)) resolveRound(state);
+  else advanceTurn(state);
+}
+
+/**
+ * Levantar baraja: quien empieza la ronda y tiene la carta más baja roba la carta de arriba
+ * y se queda con ella. Si la robada es mayor que la carta más baja de otro jugador,
+ * ese jugador pierde la ronda.
+ */
+function draw(state, actorId) {
+  assertTurn(state, actorId);
+  if (!canDraw(state, actorId)) {
+    if (state.turnOrder[state.turnOrder.length - 1] !== actorId) {
+      throw fail('Solo puede levantar baraja quien empieza la ronda, en su turno final');
+    }
+    if (state.deck.length === 0) throw fail('La baraja está vacía');
+    throw fail('Solo puede levantar baraja quien tiene la carta más baja');
+  }
+
+  const me = playerById(state, actorId);
+  const drawn = state.deck.shift();
+  me.card = drawn;
+  state.roundActions.push({ type: 'draw', playerId: actorId });
+
+  if (anyTwelve(state)) {
+    resolveRound(state);
+    return;
+  }
+
+  const others = participants(state).filter((p) => p.id !== actorId);
+  const minOther = Math.min(...others.map((p) => p.card.rank));
+  if (drawn.rank > minOther) {
+    for (const p of others) {
+      if (p.card.rank === minOther) {
+        state.penalized.push(p.id);
+        state.roundActions.push({ type: 'penalty', playerId: p.id });
+      }
+    }
+  }
+  advanceTurn(state);
+}
+
+/** Cierre de ronda: revela, aplica pérdidas de vidas y efectos especiales, elimina y comprueba el ganador. */
+function resolveRound(state) {
+  const ps = participants(state);
+  const reveals = ps.map((p) => ({
+    playerId: p.id,
+    name: p.name,
+    seat: seatOf(state, p.id),
+    card: { ...p.card },
+  }));
+
+  const twelveIds = reveals.filter((r) => r.card.rank === TWELVE).map((r) => r.playerId);
+  const minRank = Math.min(...reveals.map((r) => r.card.rank));
+  const lowest = reveals.filter((r) => r.card.rank === minRank).map((r) => r.playerId);
+  const others = reveals.filter((r) => r.card.rank !== minRank).map((r) => r.playerId);
+
+  let winners;
+  let losers;
+  if (twelveIds.length) {
+    // Un 12 gana la ronda; los demás pierden.
+    winners = twelveIds;
+    losers = reveals.filter((r) => r.card.rank !== TWELVE).map((r) => r.playerId);
+  } else if (lowest.length === 1 || state.config.tiePolicy === 'empate_todos_ganan') {
+    winners = lowest;
+    losers = others;
+  } else {
+    winners = [];
+    losers = lowest;
+  }
+
+  // Quien ha sido penalizado por levantar baraja pierde aunque tuviera la carta más baja.
+  winners = winners.filter((id) => !state.penalized.includes(id));
+  losers = [...new Set([...losers, ...state.penalized])];
+
+  const lost = state.config.livesLostPerRound;
+  for (const id of losers) playerById(state, id).lives -= lost;
+
+  const effects = [];
+  for (const r of reveals) {
+    const effect = specialEffectFor(r.card);
+    if (!effect) continue;
+    const holder = playerById(state, r.playerId);
+    if (effect.blockedByPelle && holder.pelle) {
+      effects.push({ playerId: r.playerId, label: effect.label, lives: 0, blocked: true });
+      continue;
+    }
+    holder.lives += effect.lives;
+    effects.push({ playerId: r.playerId, label: effect.label, lives: effect.lives, blocked: false });
+  }
+
+  const eliminated = [];
+  for (const p of ps) {
+    if (p.lives <= 0) {
+      p.lives = 0;
+      p.alive = false;
+      eliminated.push(p.id);
+    }
+  }
+
+  const livesAfter = {};
+  for (const p of state.players) livesAfter[p.id] = p.lives;
+
+  state.history.push({
+    round: state.round,
+    minRank,
+    reveals,
+    winners,
+    losers,
+    effects,
+    eliminated,
+    livesAfter,
+    byTwelve: twelveIds.length > 0,
+    actions: state.roundActions.slice(),
+  });
+
+  for (const p of state.players) p.card = null;
+  state.deck = [];
+  state.revealed = reveals;
+
+  const alive = alivePlayers(state);
+  if (alive.length <= 1) {
+    state.phase = 'over';
+    state.winnerId = alive[0] ? alive[0].id : null;
+  } else {
+    state.phase = 'reveal';
+  }
+}
+
+// ---------- vista por jugador ----------
+
+/**
+ * Estado que se envía a un jugador concreto. Solo incluye su propia carta
+ * durante la ronda. Las cartas de todos se muestran únicamente tras revelar.
+ */
+function publicView(state, viewerId) {
+  const viewer = playerById(state, viewerId);
+  const current = currentPlayerId(state);
+
+  let next = null;
+  if (viewer && current === viewerId) {
+    const nextSeat = neighborSeat(state, seatOf(state, viewerId), +1);
+    next = nextSeat === null ? null : state.players[nextSeat].id;
+  }
+
+  const revealing = state.phase === 'reveal' || state.phase === 'over';
+
+  return {
+    phase: state.phase,
+    round: state.round,
+    deckCount: state.deck.length,
+    config: { ...state.config },
+    hostId: state.hostId,
+    winnerId: state.winnerId,
+    currentPlayerId: current,
+    players: state.players.map((p, seat) => ({
+      id: p.id,
+      name: p.name,
+      seat,
+      lives: p.lives,
+      alive: p.alive,
+      connected: p.connected,
+      pelle: p.pelle,
+      hasCard: p.card !== null,
+      isHost: p.id === state.hostId,
+    })),
+    you: viewer
+      ? {
+          id: viewer.id,
+          card: viewer.card ? { ...viewer.card } : null,
+          isHost: viewer.id === state.hostId,
+          canAct: current === viewer.id,
+          canDraw: canDraw(state, viewer.id),
+          next,
+        }
+      : null,
+    revealed: revealing ? state.revealed.map((r) => ({ ...r, card: { ...r.card } })) : null,
+    roundActions: state.roundActions.map((a) => ({ ...a })),
+    history: state.history,
+  };
+}
+
+const API = {
+  SUITS,
+  RANKS,
+  TIE_POLICIES,
+  DEFAULT_CONFIG,
+  SPECIAL_EFFECTS,
+  GameError,
+  createDeck,
+  shuffle,
+  specialEffectFor,
+  normalizeConfig,
+  createGame,
+  addPlayer,
+  removePlayer,
+  setConnected,
+  updateConfig,
+  togglePelle,
+  movePlayer,
+  kickPlayer,
+  forceKeep,
+  setHost,
+  startGame,
+  restartLobby,
+  nextRound,
+  keep,
+  swap,
+  draw,
+  publicView,
+  currentPlayerId,
+  canDraw,
+};
+
+if (typeof module !== 'undefined' && module.exports) module.exports = API;
+if (typeof window !== 'undefined') window.LaRataGame = API;
+
+</script>
+<script>
+(() => {
+  'use strict';
+
+  const G = window.LaRataGame;
+  const STORE = 'larata-una-pantalla-v2';
+  const reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+  // ---------- dibujos (SVG fijos, nunca datos del usuario) ----------
+  const SUIT = {
+    oros: '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#e3b24c" stroke="#8a5a12" stroke-width="2"/><circle cx="20" cy="20" r="11.5" fill="none" stroke="#8a5a12" stroke-width="1.6"/><circle cx="20" cy="20" r="7" fill="#f3d58a" stroke="#b07a22" stroke-width="1.2"/><circle cx="20" cy="20" r="2.6" fill="#a8231b"/></svg>',
+    copas: '<svg viewBox="0 0 40 40"><rect x="8" y="4" width="24" height="3.4" rx="1.7" fill="#e0ae4c" stroke="#8a5a12" stroke-width="1"/><path d="M9.5 7h21c0 9.5-4.2 15-10.5 15.6C13.7 22 9.5 16.5 9.5 7z" fill="#b3261e" stroke="#6e140f" stroke-width="1.5"/><path d="M13 9.5c.4 5 2.4 8.6 5.4 9.6" stroke="#f08a74" stroke-width="1.4" fill="none" stroke-linecap="round"/><rect x="18" y="22.5" width="4" height="7.5" fill="#e0ae4c" stroke="#8a5a12" stroke-width="1"/><path d="M11 36h18l-3.4-6H14.4z" fill="#e0ae4c" stroke="#8a5a12" stroke-width="1.2"/></svg>',
+    espadas: '<svg viewBox="0 0 40 40"><path d="M20 1.5l3.6 6.5v19h-7.2V8z" fill="#d3dbe6" stroke="#2c4f8c" stroke-width="1.5"/><path d="M20 5v21" stroke="#2c4f8c" stroke-width="1" opacity=".6"/><path d="M8.5 26.5h23l-2 3.6h-19z" fill="#2c4f8c" stroke="#1a2f55" stroke-width="1"/><rect x="18" y="30" width="4" height="5.5" fill="#e0ae4c" stroke="#8a5a12" stroke-width="1"/><circle cx="20" cy="37.2" r="2.4" fill="#2c4f8c"/></svg>',
+    bastos: '<svg viewBox="0 0 40 40"><path d="M16.5 38l-2.6-25.5C13.4 6.6 16.6 2 21 2c4.3 0 6.8 4.3 5.8 9.8L22.5 38z" fill="#a36a33" stroke="#5a3511" stroke-width="1.6"/><path d="M18 9c1-2 2.6-3 4.2-3" stroke="#d29a5e" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="15.4" cy="14" r="2.3" fill="#3d7a33" stroke="#22501c" stroke-width=".8"/><circle cx="25.4" cy="18.5" r="2.3" fill="#3d7a33" stroke="#22501c" stroke-width=".8"/><circle cx="16.6" cy="24.5" r="2" fill="#3d7a33" stroke="#22501c" stroke-width=".8"/><circle cx="23.6" cy="29" r="1.8" fill="#3d7a33" stroke="#22501c" stroke-width=".8"/></svg>',
+  };
+  const RAT = '<svg viewBox="0 0 64 40" aria-hidden="true"><path d="M8 33c-6 1-7-5-2-7" stroke="#f4ead3" stroke-width="2.2" fill="none" stroke-linecap="round"/><ellipse cx="27" cy="25" rx="18" ry="10.5" fill="#f4ead3"/><path d="M40 17c6-3 13-1 18 6-4 3-11 5-18 3z" fill="#f4ead3"/><circle cx="41" cy="13.5" r="5" fill="#f4ead3"/><circle cx="41" cy="13.5" r="2.4" fill="#e6a49b"/><circle cx="50" cy="20" r="1.5" fill="#6f140f"/><circle cx="58.5" cy="23" r="1.6" fill="#e6a49b"/><path d="M57 24l5 1M57 25l4.5 3" stroke="#f4ead3" stroke-width=".9" stroke-linecap="round"/><path d="M20 34l-2 4M34 34l1 4" stroke="#f4ead3" stroke-width="2.4" stroke-linecap="round"/></svg>';
+  const RAT_SMALL = RAT.replace(/#f4ead3/g, '#e0ae4c');
+  const CROWN = '<svg viewBox="0 0 48 36" aria-hidden="true"><path d="M4 30L2 8l11 9 11-15 11 15 11-9-2 22z" fill="currentColor" stroke="#7a4f12" stroke-width="2" stroke-linejoin="round"/><rect x="4" y="29" width="40" height="5" rx="2" fill="currentColor" stroke="#7a4f12" stroke-width="2"/><circle cx="24" cy="21" r="3" fill="#a8231b"/><circle cx="13" cy="23" r="2" fill="#2c4f8c"/><circle cx="35" cy="23" r="2" fill="#2c4f8c"/></svg>';
+  const EMBLEM = {
+    10: '<svg viewBox="0 0 40 40"><path d="M8 16c4-8 20-8 24 0-6-2-18-2-24 0z" fill="#a8231b" stroke="#6e140f" stroke-width="1.2"/><path d="M30 14c4-6 7-9 8-12-1 6-3 10-6 13z" fill="#e0ae4c" stroke="#8a5a12" stroke-width="1"/><circle cx="20" cy="25" r="8" fill="#f1c9a5" stroke="#8a5a12" stroke-width="1.2"/><path d="M14 38c0-5 3-7 6-7s6 2 6 7z" fill="#2c4f8c"/></svg>',
+    11: '<svg viewBox="0 0 40 40"><path d="M10 38c-1-9 1-16 6-21l-3-6 6 3c3-4 9-6 13-4-2 2-2 4-1 6 3 3 3 7 0 9l-5-2c-2 4-2 9-1 15z" fill="#8a5a33" stroke="#4a2a10" stroke-width="1.3" stroke-linejoin="round"/><circle cx="27" cy="13" r="1.4" fill="#1d1812"/><path d="M17 15c-2 4-3 8-3 12" stroke="#e0ae4c" stroke-width="2" fill="none" stroke-linecap="round"/></svg>',
+    12: CROWN.replace('currentColor', '#e0ae4c').replace('currentColor', '#e0ae4c'),
+  };
+  const ICON = {
+    cambio: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>',
+    ojo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 3l18 18M10.6 6.1A9.8 9.8 0 0 1 12 6c5 0 8.5 4 9.5 6-.5 1-1.5 2.4-2.9 3.6M6.6 7.6C4.6 8.9 3.2 10.7 2.5 12c1 2 4.5 6 9.5 6 1.6 0 3-.4 4.3-1"/></svg>',
+    mano: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 11V5a2 2 0 0 1 4 0v5M11 10V4a2 2 0 0 1 4 0v6M15 10V6a2 2 0 0 1 4 0v8a7 7 0 0 1-7 7h-1a7 7 0 0 1-6-3.4L3 14a2 2 0 0 1 3.4-2L7 13"/></svg>',
+    baraja: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="3" width="12" height="16" rx="2"/><path d="M5 6v13a2 2 0 0 0 2 2h9"/><path d="M13 8v6M10 11h6"/></svg>',
+    quedar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>',
+  };
+
+  // Posiciones (% del recuadro) de los palos en las cartas de número, como en la baraja española.
+  const PIP_LAYOUT = {
+    2: [[50, 18], [50, 82]],
+    3: [[50, 15], [50, 50], [50, 85]],
+    4: [[28, 20], [72, 20], [28, 80], [72, 80]],
+    5: [[28, 18], [72, 18], [50, 50], [28, 82], [72, 82]],
+    6: [[28, 15], [72, 15], [28, 50], [72, 50], [28, 85], [72, 85]],
+    7: [[28, 13], [72, 13], [50, 34], [28, 56], [72, 56], [28, 87], [72, 87]],
+  };
+  const PINTA_CORTES = { oros: 0, copas: 1, espadas: 2, bastos: 3 };
+  const RANK_NAME = { 1: 'As', 10: 'Sota', 11: 'Caballo', 12: 'Rey' };
+
+  // ---------- estado ----------
+  let state = null;
+  let ui = { stage: 'setup' };
+  let setup = { count: 4, names: [], lives: 2, lost: 1, tie: 'empate_todos_ganan' };
+  let busy = false;
+  let sheet = null; // 'marcador' | 'salir' | null
+  const app = document.getElementById('app');
+
+  // ---------- utilidades ----------
+  function h(tag, attrs, ...kids) {
+    const n = document.createElement(tag);
+    if (attrs) {
+      for (const [k, v] of Object.entries(attrs)) {
+        if (v === null || v === undefined || v === false) continue;
+        if (k === 'class') n.className = v;
+        else if (k === 'html') n.innerHTML = v; // solo para SVG fijos definidos arriba
+        else if (k === 'tap') onTap(n, v);
+        else if (k === 'style') n.style.cssText = v;
+        else n.setAttribute(k, v === true ? '' : v);
+      }
+    }
+    for (const kid of kids.flat()) {
+      if (kid === null || kid === undefined || kid === false) continue;
+      n.appendChild(typeof kid === 'string' || typeof kid === 'number' ? document.createTextNode(String(kid)) : kid);
+    }
+    return n;
+  }
+
+  /** Toque fiable en Android: dispara al levantar el dedo y evita el doble disparo del clic. */
+  function onTap(el, fn) {
+    let last = 0;
+    el.addEventListener('pointerup', (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      if (el.disabled) return;
+      last = Date.now();
+      fn(e);
+    });
+    el.addEventListener('click', (e) => {
+      if (Date.now() - last < 700) return;
+      if (el.disabled) return;
+      fn(e);
+    });
+  }
+
+  const wait = (ms) => new Promise((r) => setTimeout(r, reduceMotion ? 0 : ms));
+  function anim(el, frames, opts) {
+    if (!el || !el.animate || reduceMotion) return Promise.resolve();
+    const a = el.animate(frames, Object.assign({ duration: 400, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'forwards' }, opts));
+    return a.finished.catch(() => {});
+  }
+  async function flip(el, up) {
+    el.classList.toggle('boca-arriba', up);
+    await wait(620);
+  }
+  function vibrate(p) { try { navigator.vibrate && navigator.vibrate(p); } catch (_) { /* sin vibración */ } }
+
+  let toastTimer = null;
+  function toast(text) {
+    document.querySelectorAll('.toast').forEach((t) => t.remove());
+    const t = h('div', { class: 'toast', role: 'status' }, text);
+    document.body.appendChild(t);
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.remove(), 3200);
+  }
+
+  function save() {
+    try { localStorage.setItem(STORE, JSON.stringify({ state, ui, setup })); } catch (_) { /* almacenamiento no disponible */ }
+  }
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORE);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (data.setup) setup = Object.assign(setup, data.setup);
+      if (data.state && data.state.phase && data.state.phase !== 'lobby') {
+        state = data.state;
+        ui = data.ui || { stage: 'cover' };
+        // Por privacidad, al volver a abrir nunca se enseña una carta: se tapa la pantalla.
+        if (ui.stage === 'turn' || ui.stage === 'after') ui = { stage: state.phase === 'turns' ? 'cover' : 'prereveal' };
+      }
+    } catch (_) { /* datos guardados no válidos: se empieza de cero */ }
+  }
+
+  let wakeLock = null;
+  async function keepAwake() {
+    try { if (!wakeLock && navigator.wakeLock) wakeLock = await navigator.wakeLock.request('screen'); } catch (_) { wakeLock = null; }
+  }
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { wakeLock = null; if (state) keepAwake(); } });
+
+  const P = (id) => state.players.find((p) => p.id === id);
+  const nameOf = (id) => (P(id) ? P(id).name : '—');
+  const namesOf = (ids) => ids.map(nameOf).join(', ');
+  const cardName = (c) => `${RANK_NAME[c.rank] || c.rank} de ${c.suit}`;
+  const current = () => G.currentPlayerId(state);
+  const nextOf = (id) => G.publicView(state, id).you.next;
+  const lastEntry = () => state.history[state.history.length - 1];
+
+  // ---------- naipe ----------
+  function naipe(card, { up = false, cls = '' } = {}) {
+    const back = h('div', { class: 'dorso' }, h('div', { class: 'ovalo', html: RAT }));
+    const kids = [back];
+    if (card) {
+      const face = h('div', { class: 'cara' }, h('div', { class: 'marco' }));
+      const cortes = PINTA_CORTES[card.suit];
+      for (let i = 0; i < cortes; i++) {
+        const left = `${30 + i * 14}%`;
+        face.appendChild(h('span', { class: 'pinta arriba', style: `left:${left}` }));
+        face.appendChild(h('span', { class: 'pinta abajo', style: `right:${left}` }));
+      }
+      const label = RANK_NAME[card.rank] && card.rank !== 1 ? String(card.rank) : String(card.rank);
+      face.appendChild(h('span', { class: 'indice ar' }, label));
+      face.appendChild(h('span', { class: 'indice ab' }, label));
+      if (card.rank >= 10) {
+        face.appendChild(h('div', { class: 'figura' },
+          h('div', { class: 'emblema', html: EMBLEM[card.rank] }),
+          h('div', { class: 'palo', html: SUIT[card.suit] }),
+          h('div', { class: 'nombre' }, RANK_NAME[card.rank].toUpperCase())));
+      } else {
+        const pips = h('div', { class: 'pips' });
+        if (card.rank === 1) {
+          pips.appendChild(h('div', { class: 'pip grande', style: 'left:50%;top:50%', html: SUIT[card.suit] }));
+        } else {
+          for (const [x, y] of PIP_LAYOUT[card.rank]) {
+            pips.appendChild(h('div', { class: 'pip', style: `left:${x}%;top:${y}%`, html: SUIT[card.suit] }));
+          }
+        }
+        face.appendChild(pips);
+      }
+      kids.push(face);
+    }
+    const n = h('div', { class: `naipe ${up ? 'boca-arriba' : ''} ${cls}`.trim(), role: 'img', 'aria-label': card && up ? cardName(card) : 'Carta boca abajo' },
+      h('div', { class: 'naipe-in' }, kids));
+    return n;
+  }
+
+  function cardTags(card) {
+    const tags = [];
+    if (card.suit === 'bastos' && card.rank === 1) tags.push(h('span', { class: 'sello malo' }, 'As de bastos: −2 vidas'));
+    if (card.suit === 'bastos' && card.rank === 12) tags.push(h('span', { class: 'sello bueno' }, 'Rey de bastos: +1 vida'));
+    if (card.rank === 12) tags.push(h('span', { class: 'sello oro' }, 'Un 12 gana la ronda'));
+    return tags;
+  }
+
+  // ---------- pantallas ----------
+  function render() {
+    app.replaceChildren();
+    const screens = { setup: renderSetup, cover: renderCover, turn: renderTurn, after: renderAfter, prereveal: renderPrereveal, reveal: renderReveal, over: renderOver };
+    app.appendChild((screens[ui.stage] || renderSetup)());
+    renderSheet();
+    save();
+  }
+
+  function cabecera() {
+    const info = state ? `Ronda ${state.round} · ${state.deck.length} en la baraja` : '';
+    return h('header', { class: 'cabecera' },
+      h('div', { class: 'marca', html: RAT_SMALL }, ),
+      h('span', { class: 'ronda' }, info),
+      h('button', { class: 'btn chico', tap: () => { sheet = 'marcador'; renderSheet(); } }, 'Marcador'));
+  }
+
+  // --- configuración ---
+  function renderSetup() {
+    while (setup.names.length < 8) setup.names.push('');
+    const fichas = h('div', { class: 'fichas', role: 'group', 'aria-label': 'Número de jugadores' });
+    for (let n = 2; n <= 8; n++) {
+      fichas.appendChild(h('button', { class: 'ficha', 'aria-pressed': String(setup.count === n), tap: () => { setup.count = n; render(); } }, n));
+    }
+    const nombres = h('div', { class: 'nombres' });
+    for (let i = 0; i < setup.count; i++) {
+      const input = h('input', { id: `nombre-${i}`, type: 'text', maxlength: '20', autocomplete: 'off', placeholder: `Jugador ${i + 1}`, 'aria-label': `Nombre del jugador ${i + 1}` });
+      input.value = setup.names[i];
+      input.addEventListener('input', () => { setup.names[i] = input.value; save(); });
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); input.blur(); } });
+      nombres.appendChild(h('div', { class: 'campo' }, h('span', { class: 'num' }, i + 1), input));
+    }
+
+    const contador = (label, key, min, max) => {
+      const out = h('output', { 'aria-live': 'polite' }, setup[key]);
+      const set = (v) => { setup[key] = Math.max(min, Math.min(max, v)); out.textContent = setup[key]; save(); };
+      return h('div', { class: 'contador-caja' },
+        h('span', { class: 'etiqueta' }, label),
+        h('div', { class: 'contador' },
+          h('button', { 'aria-label': `Menos ${label.toLowerCase()}`, tap: () => set(setup[key] - 1) }, '−'),
+          out,
+          h('button', { 'aria-label': `Más ${label.toLowerCase()}`, tap: () => set(setup[key] + 1) }, '+')));
+    };
+
+    const tie = h('select', { id: 'empate', class: 'campo', 'aria-label': 'Empate en la carta más baja' },
+      h('option', { value: 'empate_todos_ganan' }, 'Los empatados ganan; el resto pierde'),
+      h('option', { value: 'empate_todos_pierden' }, 'Los empatados pierden; el resto no'));
+    tie.value = setup.tie;
+    tie.addEventListener('change', () => { setup.tie = tie.value; save(); });
+
+    const start = h('button', { class: 'btn oro', tap: startFromSetup }, 'Repartir cartas');
+    start.addEventListener('pointerdown', () => { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); });
+
+    return h('section', { class: 'screen' },
+      h('div', { class: 'portada' },
+        h('div', { class: 'abanico', 'aria-hidden': 'true' }, naipe(null), naipe({ rank: 1, suit: 'oros' }, { up: true }), naipe(null)),
+        h('h1', { class: 'titulo' }, 'La Rata'),
+        h('p', { class: 'muted' }, 'Un móvil para toda la mesa. Cada uno mira solo su carta.')),
+      h('div', { class: 'bloque' }, h('span', { class: 'etiqueta' }, 'JUGADORES'), fichas, nombres),
+      h('div', { class: 'ajustes' }, contador('VIDAS', 'lives', 1, 20), contador('PIERDES POR RONDA', 'lost', 1, 5)),
+      h('div', { class: 'bloque' }, h('label', { for: 'empate' }, 'SI EMPATAN CON LA MÁS BAJA'), tie),
+      h('details', { class: 'reglas' },
+        h('summary', null, 'Reglas'),
+        h('ul', null,
+          h('li', null, 'Cada uno recibe una carta y solo mira la suya.'),
+          h('li', null, 'En tu turno te la quedas o la cambias con el siguiente. Si te la cambian, lo verás al coger el móvil.'),
+          h('li', null, 'Quien empieza la ronda juega el último. Si tiene la carta más baja puede levantar baraja: si la que saca es mayor que la más baja de otro, pierde ese otro.'),
+          h('li', null, 'Gana la carta más baja. Un 12 gana la ronda al momento.'),
+          h('li', null, 'As de bastos: −2 vidas. Rey de bastos: +1 vida, salvo si tienes el pelle.'),
+          h('li', null, 'Sin vidas quedas fuera. Gana el último que siga vivo.'))),
+      h('div', { class: 'acciones' }, start));
+  }
+
+  function startFromSetup() {
+    if (busy) return;
+    const names = setup.names.slice(0, setup.count).map((n, i) => (n || '').trim() || `Jugador ${i + 1}`);
+    if (new Set(names.map((n) => n.toLowerCase())).size !== names.length) { toast('Hay dos jugadores con el mismo nombre. Cambia uno.'); return; }
+    try {
+      state = G.createGame({ lives: setup.lives, livesLostPerRound: setup.lost, tiePolicy: setup.tie, maxPlayers: 8 });
+      names.forEach((name, i) => G.addPlayer(state, { id: 'j' + i, token: 'local', name }));
+      G.startGame(state, state.hostId);
+    } catch (err) {
+      state = null;
+      toast(err.message);
+      return;
+    }
+    keepAwake();
+    goAfterDeal();
+  }
+
+  function goAfterDeal() {
+    ui = state.phase === 'turns' ? { stage: 'cover' } : { stage: 'prereveal', note: 'twelveDeal' };
+    render();
+  }
+
+  // --- orden de turnos (público) ---
+  function ordenTurnos() {
+    const wrap = h('div', { class: 'orden', 'aria-label': 'Orden de turnos' });
+    state.turnOrder.forEach((id, i) => {
+      const p = P(id);
+      const act = state.roundActions.find((a) => a.playerId === id && a.type !== 'penalty');
+      const done = state.phase !== 'turns' || i < state.turnIdx;
+      const now = state.phase === 'turns' && i === state.turnIdx;
+      const hizo = act ? { keep: 'se quedó', swap: 'cambió', draw: 'levantó' }[act.type] : null;
+      wrap.appendChild(h('div', { class: `turno-ficha ${now ? 'ahora' : ''} ${done ? 'hecho' : ''} ${p.pelle ? 'pelle' : ''}` },
+        h('span', { class: 'ini' }, i + 1),
+        h('span', { class: 'nm' }, p.name),
+        h('span', { class: 'vidas' }, `♥${p.lives}`),
+        hizo ? h('span', { class: 'hizo' }, hizo) : null));
+    });
+    return wrap;
+  }
+
+  // --- pasar el móvil ---
+  function renderCover() {
+    const id = current();
+    const p = P(id);
+    const ver = h('button', { class: 'btn oro', tap: () => { if (busy) return; ui = { stage: 'turn', fresh: true }; render(); } },
+      h('span', { html: ICON.mano }), `Soy ${p.name}: ver mi carta`);
+    return h('section', { class: 'screen' },
+      cabecera(),
+      h('div', { class: 'pasa' },
+        h('span', { class: 'eyebrow' }, 'PASA EL MÓVIL A'),
+        h('div', { class: 'moneda', 'aria-hidden': 'true' }, p.name.charAt(0).toUpperCase()),
+        h('h2', { class: 'quien' }, p.name),
+        h('p', { class: 'aviso-privado' }, h('span', { html: ICON.ojo }), 'Que nadie más mire la pantalla.')),
+      ordenTurnos(),
+      h('div', { class: 'acciones' }, ver));
+  }
+
+  // --- turno: solo se ve la carta de quien tiene el móvil ---
+  function renderTurn() {
+    const id = current();
+    const me = P(id);
+    const view = G.publicView(state, id);
+    const card = view.you.card;
+    const swapIn = state.roundActions.find((a) => a.type === 'swap' && a.neighborId === id);
+    const fresh = ui.fresh;
+    ui.fresh = false;
+
+    const carta = naipe(card, { up: !fresh });
+    const leyenda = h('div', { class: 'leyenda' });
+    const fillLeyenda = () => {
+      leyenda.replaceChildren(h('span', { class: 'carta-nombre' }, cardName(card)), h('div', { class: 'orden' }, cardTags(card)));
+    };
+    if (!fresh) fillLeyenda();
+
+    const next = view.you.next;
+    const isLast = state.turnIdx === state.turnOrder.length - 1;
+    const botones = [];
+    const quedar = h('button', { class: 'btn', tap: () => doKeep(id) }, h('span', { html: ICON.quedar }), 'Me la quedo');
+    const cambiar = h('button', { class: 'btn rojo', tap: () => doSwap(id, card, carta) }, h('span', { html: ICON.cambio }), next ? `Cambiar con ${nameOf(next)}` : 'Cambiar');
+    cambiar.disabled = !next;
+    botones.push(h('div', { class: 'duo' }, quedar, cambiar));
+    if (view.you.canDraw) {
+      botones.push(h('button', { class: 'btn oro', tap: () => doDraw(id, carta) }, h('span', { html: ICON.baraja }), 'Levantar baraja'));
+    }
+    botones.push(h('button', { class: 'btn fantasma', tap: () => { if (busy) return; ui = { stage: 'cover' }; render(); } }, 'Tapar la carta'));
+
+    const screen = h('section', { class: 'screen' },
+      h('header', { class: 'cabecera' },
+        h('div', { class: 'marca', html: RAT_SMALL }),
+        h('span', { class: 'ronda' }, `${me.name} · ♥${me.lives}${me.pelle ? ' · pelle' : ''}${isLast ? ' · último turno' : ''}`)),
+      swapIn ? h('div', { class: 'banner-cambio', role: 'status' }, h('span', { html: ICON.cambio }),
+        h('p', null, h('strong', null, nameOf(swapIn.playerId)), ' te ha cambiado la carta. Esta es la que te ha dado.')) : null,
+      h('div', { class: 'mesa' }, h('div', { class: 'halo' }), carta),
+      leyenda,
+      h('div', { class: 'acciones' }, botones));
+
+    if (fresh) {
+      busy = true;
+      requestAnimationFrame(async () => {
+        if (swapIn) {
+          vibrate([40, 60, 40]);
+          await anim(carta, [{ transform: 'translateX(-130%) rotate(-14deg)', opacity: 0 }, { transform: 'translateX(8%) rotate(3deg)', opacity: 1, offset: .75 }, { transform: 'none', opacity: 1 }], { duration: 650 });
+        } else {
+          await anim(carta, [{ transform: 'translateY(40%) scale(.85)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 450 });
+        }
+        await flip(carta, true);
+        fillLeyenda();
+        if (swapIn) carta.classList.add('brilla');
+        busy = false;
+      });
+    }
+    return screen;
+  }
+
+  function act(fn) {
+    try { fn(); return true; } catch (err) { toast(err.userError ? err.message : 'Algo ha fallado: ' + err.message); return false; }
+  }
+
+  function doKeep(id) {
+    if (busy) return;
+    if (!act(() => G.keep(state, id))) return;
+    ui = state.phase === 'turns' ? { stage: 'cover' } : { stage: 'prereveal' };
+    render();
+  }
+
+  function doSwap(id, oldCard, cartaEl) {
+    if (busy) return;
+    const nextId = nextOf(id);
+    if (!act(() => G.swap(state, id))) return;
+    const newCard = state.phase === 'turns' ? P(id).card : state.revealed.find((r) => r.playerId === id).card;
+    ui = { stage: 'after', kind: 'swap', withId: nextId, oldCard, newCard };
+    render();
+  }
+
+  function doDraw(id) {
+    if (busy) return;
+    const before = P(id).card;
+    if (!act(() => G.draw(state, id))) return;
+    const drawn = state.phase === 'turns' ? P(id).card : state.revealed.find((r) => r.playerId === id).card;
+    ui = { stage: 'after', kind: 'draw', oldCard: before, newCard: drawn };
+    render();
+  }
+
+  // --- después de cambiar o levantar: quien actuó ve su carta nueva ---
+  function renderAfter() {
+    const swap = ui.kind === 'swap';
+    const carta = naipe(ui.oldCard, { up: true });
+    const leyenda = h('div', { class: 'leyenda' });
+    const roundOver = state.phase !== 'turns';
+    const seguir = h('button', { class: 'btn oro', tap: () => {
+      if (busy) return;
+      ui = roundOver ? { stage: 'reveal', animate: true } : { stage: 'cover' };
+      render();
+    } }, roundOver ? 'Revelar cartas' : 'Tapar y pasar el móvil');
+    seguir.disabled = true;
+
+    const titulo = swap
+      ? h('p', { class: 'muted' }, 'Le das tu carta a ', h('b', null, nameOf(ui.withId)), ' y te quedas con la suya.')
+      : h('p', { class: 'muted' }, 'Levantas la carta de arriba de la baraja.');
+
+    const screen = h('section', { class: 'screen' },
+      h('header', { class: 'cabecera' }, h('div', { class: 'marca', html: RAT_SMALL }), h('span', { class: 'ronda' }, swap ? 'Cambio de carta' : 'Levantar baraja')),
+      titulo,
+      h('div', { class: 'mesa' }, h('div', { class: 'halo' }), carta),
+      leyenda,
+      h('div', { class: 'acciones' }, seguir));
+
+    busy = true;
+    requestAnimationFrame(async () => {
+      await wait(250);
+      await flip(carta, false);
+      if (swap) {
+        await anim(carta, [{ transform: 'none', opacity: 1 }, { transform: 'translateX(140%) rotate(14deg)', opacity: 0 }], { duration: 420, easing: 'cubic-bezier(.5,0,.8,.4)' });
+        vibrate(30);
+      } else {
+        await anim(carta, [{ transform: 'none', opacity: 1 }, { transform: 'translateY(60%) scale(.8)', opacity: 0 }], { duration: 380 });
+      }
+      const nueva = naipe(ui.newCard, { up: false });
+      carta.replaceWith(nueva);
+      await anim(nueva, swap
+        ? [{ transform: 'translateX(140%) rotate(14deg)', opacity: 0 }, { transform: 'translateX(-6%) rotate(-2deg)', opacity: 1, offset: .75 }, { transform: 'none', opacity: 1 }]
+        : [{ transform: 'translateY(-90%) rotate(-6deg) scale(.8)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 560 });
+      await flip(nueva, true);
+      nueva.classList.add('brilla');
+      leyenda.replaceChildren(
+        h('span', { class: 'eyebrow' }, swap ? `AHORA TIENES LA CARTA DE ${nameOf(ui.withId).toUpperCase()}` : 'HAS SACADO'),
+        h('span', { class: 'carta-nombre' }, cardName(ui.newCard)),
+        h('div', { class: 'orden' }, cardTags(ui.newCard)));
+      seguir.disabled = false;
+      busy = false;
+    });
+    return screen;
+  }
+
+  // --- antes de revelar ---
+  function renderPrereveal() {
+    const entry = lastEntry();
+    const byTwelveDeal = ui.note === 'twelveDeal';
+    return h('section', { class: 'screen' },
+      cabecera(),
+      h('div', { class: 'pasa' },
+        h('span', { class: 'eyebrow' }, byTwelveDeal ? '¡HA SALIDO UN 12 EN EL REPARTO!' : entry && entry.byTwelve ? '¡HA APARECIDO UN 12!' : 'TODOS HAN JUGADO'),
+        h('div', { class: 'abanico', 'aria-hidden': 'true' }, naipe(null), naipe(null), naipe(null)),
+        h('h2', { class: 'quien' }, 'Dejad el móvil en el centro'),
+        h('p', { class: 'muted' }, 'Las cartas se revelan a la vez para toda la mesa.')),
+      h('div', { class: 'acciones' }, h('button', { class: 'btn oro', tap: () => { ui = { stage: 'reveal', animate: true }; render(); } }, 'Revelar cartas')));
+  }
+
+  // --- revelar ---
+  function livesBefore(entryIndex, id) {
+    const prev = state.history[entryIndex - 1];
+    return prev && prev.livesAfter[id] !== undefined ? prev.livesAfter[id] : state.config.lives;
+  }
+
+  function summary(entry) {
+    if (!entry.winners.length) return 'Empate en la carta más baja: nadie gana';
+    return `${entry.winners.length > 1 ? 'Ganan' : 'Gana'} ${namesOf(entry.winners)} ${entry.byTwelve ? 'con un 12' : 'con la carta más baja'}`;
+  }
+
+  function cronica(entry) {
+    const lines = entry.actions.map((a) => {
+      if (a.type === 'keep') return [h('b', null, nameOf(a.playerId)), ' se quedó su carta'];
+      if (a.type === 'swap') return [h('b', null, nameOf(a.playerId)), ' cambió con ', h('b', null, nameOf(a.neighborId))];
+      if (a.type === 'draw') return [h('b', null, nameOf(a.playerId)), ' levantó baraja'];
+      return [h('b', null, nameOf(a.playerId)), ' pierde por la baraja levantada'];
+    });
+    for (const fx of entry.effects) {
+      lines.push(fx.blocked
+        ? [h('b', null, nameOf(fx.playerId)), ` tenía el ${fx.label}, pero con el pelle no suma`]
+        : [h('b', null, nameOf(fx.playerId)), ` · ${fx.label}: ${fx.lives > 0 ? '+' : ''}${fx.lives} vida${Math.abs(fx.lives) > 1 ? 's' : ''}`]);
+    }
+    if (entry.eliminated.length) lines.push([h('b', null, namesOf(entry.eliminated)), ' queda fuera']);
+    if (!lines.length) return null;
+    return h('div', { class: 'cronica' }, lines.map((l) => h('p', null, l)));
+  }
+
+  function renderReveal() {
+    const idx = state.history.length - 1;
+    const entry = state.history[idx];
+    const animate = ui.animate;
+    ui.animate = false;
+
+    const rejilla = h('div', { class: 'rejilla' });
+    const cards = [];
+    const extras = [];
+    for (const r of entry.reveals) {
+      const before = livesBefore(idx, r.playerId);
+      const after = entry.livesAfter[r.playerId];
+      const d = after - before;
+      const isWinner = entry.winners.includes(r.playerId);
+      const n = naipe(r.card, { up: !animate, cls: isWinner && !animate ? 'brilla' : '' });
+      const delta = h('span', { class: `delta ${d < 0 ? 'menos' : d > 0 ? 'mas' : ''}` }, animate ? '' : d === 0 ? '♥' + after : `${d > 0 ? '+' : ''}${d} · ♥${after}`);
+      const corona = isWinner ? h('span', { class: 'corona', html: CROWN }) : null;
+      if (corona && animate) corona.style.opacity = '0';
+      rejilla.appendChild(h('div', { class: 'asiento' }, corona, n, h('span', { class: 'nm' }, r.name), delta,
+        entry.eliminated.includes(r.playerId) ? h('span', { class: 'fuera' }, 'FUERA') : null));
+      cards.push(n);
+      extras.push({ n, delta, d, after, isWinner, corona });
+    }
+
+    const resumen = h('p', { class: 'muted' }, summary(entry));
+    if (animate) resumen.style.visibility = 'hidden';
+    const over = state.phase === 'over';
+    const seguir = h('button', { class: 'btn oro', tap: () => {
+      if (busy) return;
+      if (over) { ui = { stage: 'over' }; render(); return; }
+      if (!act(() => G.nextRound(state, state.hostId))) return;
+      goAfterDeal();
+    } }, over ? 'Ver quién gana' : 'Siguiente ronda');
+    if (animate) seguir.disabled = true;
+
+    const screen = h('section', { class: 'screen' },
+      cabecera(),
+      h('div', { class: 'resultado' }, h('span', { class: 'eyebrow' }, `RONDA ${entry.round}`), h('h2', null, 'Cartas boca arriba'), resumen),
+      rejilla,
+      cronica(entry),
+      h('div', { class: 'acciones' }, seguir));
+
+    if (animate) {
+      busy = true;
+      requestAnimationFrame(async () => {
+        await wait(300);
+        for (const c of cards) { c.classList.add('boca-arriba'); await wait(260); }
+        await wait(500);
+        for (const x of extras) {
+          if (x.isWinner) { x.n.classList.add('brilla'); if (x.corona) { x.corona.style.opacity = ''; x.corona.classList.add('flota'); } }
+          else x.n.classList.add('apagada');
+          x.delta.textContent = x.d === 0 ? '♥' + x.after : `${x.d > 0 ? '+' : ''}${x.d} · ♥${x.after}`;
+          x.delta.classList.add('flota');
+        }
+        resumen.style.visibility = '';
+        vibrate(60);
+        seguir.disabled = false;
+        busy = false;
+      });
+    }
+    return screen;
+  }
+
+  // --- fin de partida ---
+  function renderOver() {
+    const winner = state.winnerId ? P(state.winnerId) : null;
+    const ranking = state.players.slice().sort((a, b) => b.lives - a.lives || Number(b.alive) - Number(a.alive));
+    const screen = h('section', { class: 'screen' },
+      cabecera(),
+      h('div', { class: 'final' },
+        h('span', { class: 'corona-grande', html: CROWN }),
+        h('span', { class: 'eyebrow' }, winner ? 'GANA LA PARTIDA' : 'NADIE SIGUE VIVO'),
+        h('h2', { class: 'ganador' }, winner ? winner.name : 'Sin ganador'),
+        h('p', { class: 'muted' }, `Tras ${state.round} ronda${state.round === 1 ? '' : 's'}.`)),
+      h('div', { class: 'clasif' }, ranking.map((p) => h('div', { class: `fila ${p.id === state.winnerId ? 'primero' : ''}` },
+        h('span', null, p.name), h('span', { class: 'muted' }, p.alive ? `♥${p.lives}` : 'fuera')))),
+      h('div', { class: 'acciones' },
+        h('button', { class: 'btn oro', tap: () => {
+          if (!act(() => { G.restartLobby(state, state.hostId); G.startGame(state, state.hostId); })) return;
+          goAfterDeal();
+        } }, 'Revancha con los mismos'),
+        h('button', { class: 'btn fantasma', tap: () => { state = null; ui = { stage: 'setup' }; render(); } }, 'Cambiar jugadores')));
+    if (winner && !reduceMotion) {
+      const c = h('div', { class: 'confeti', 'aria-hidden': 'true' });
+      const colors = ['#e0ae4c', '#a8231b', '#f4ead3', '#2c4f8c', '#3d7a33'];
+      for (let i = 0; i < 60; i++) {
+        c.appendChild(h('i', { style: `left:${Math.random() * 100}%;background:${colors[i % colors.length]};animation-duration:${2.2 + Math.random() * 2}s;animation-delay:${Math.random() * .8}s` }));
+      }
+      screen.appendChild(c);
+      setTimeout(() => c.remove(), 5200);
+    }
+    return screen;
+  }
+
+  // ---------- marcador y salir ----------
+  function renderSheet() {
+    document.querySelectorAll('.velo').forEach((v) => v.remove());
+    if (!sheet || !state) return;
+    const cerrar = () => { sheet = null; renderSheet(); };
+
+    if (sheet === 'salir') {
+      const velo = h('div', { class: 'velo centro' },
+        h('div', { class: 'dialogo', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Terminar partida' },
+          h('h3', null, '¿Terminar esta partida?'),
+          h('p', { class: 'muted' }, 'Se pierden las vidas y el historial de esta partida.'),
+          h('div', { class: 'duo' },
+            h('button', { class: 'btn', tap: cerrar }, 'Seguir jugando'),
+            h('button', { class: 'btn rojo', tap: () => { sheet = null; state = null; ui = { stage: 'setup' }; render(); } }, 'Terminar'))));
+      document.body.appendChild(velo);
+      return;
+    }
+
+    const jugadores = h('div', { class: 'jugadores' }, state.players.map((p) =>
+      h('div', { class: `jug ${p.alive ? '' : 'fuera'}` },
+        h('span', { class: 'nm' }, p.name),
+        h('span', { class: 'vidas' }, p.alive ? `♥ ${p.lives}` : 'fuera'),
+        h('button', { class: 'toggle', 'aria-pressed': String(!!p.pelle), tap: () => { act(() => G.togglePelle(state, state.hostId, p.id)); save(); renderSheet(); } }, p.pelle ? 'Tiene pelle' : 'Dar pelle'))));
+
+    const historia = h('div', { class: 'historia' });
+    state.history.slice().reverse().forEach((entry) => {
+      historia.appendChild(h('div', { class: 'ent' },
+        h('h3', null, `Ronda ${entry.round}`),
+        h('p', null, entry.reveals.map((r) => `${r.name}: ${cardName(r.card)}`).join(' · ')),
+        h('p', { class: 'muted' }, summary(entry))));
+    });
+    if (!state.history.length) historia.appendChild(h('p', { class: 'muted small' }, 'Aún no ha terminado ninguna ronda.'));
+
+    const velo = h('div', { class: 'velo' },
+      h('div', { class: 'hoja', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Marcador' },
+        h('div', { class: 'hoja-cab' }, h('h2', null, 'Marcador'), h('button', { class: 'btn chico', tap: cerrar }, 'Cerrar')),
+        h('p', { class: 'muted small' }, 'Quien tiene el pelle no recupera vida con el Rey de bastos.'),
+        jugadores,
+        h('span', { class: 'etiqueta' }, 'RONDAS'),
+        historia,
+        h('button', { class: 'btn fantasma', tap: () => { sheet = 'salir'; renderSheet(); } }, 'Terminar partida')));
+    velo.addEventListener('click', (e) => { if (e.target === velo) cerrar(); });
+    document.body.appendChild(velo);
+  }
+
+  load();
+  if (!state) ui = { stage: 'setup' };
+  render();
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,14 @@
+# Despliegue en Render (https://render.com): Nuevo > Blueprint > elige este repositorio.
+services:
+  - type: web
+    name: la-rata
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /salud
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
