@@ -54,81 +54,148 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
 @keyframes intro-sale { to { opacity: 0; transform: scale(1.15); } }
 
 /* ---- menú ---- */
-.menu { gap: 14px; padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); position: relative; }
+.menu { gap: 10px; padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); position: relative; }
 .menu.oculto { visibility: hidden; }
 .menu.aparece > .menu-top { animation: baja .5s .05s cubic-bezier(.2,.9,.3,1.2) both; }
 .menu.aparece > .menu-logo { animation: logo-pop .6s .1s cubic-bezier(.2,1.4,.4,1) both; }
 .menu.aparece .btn-menu { animation: sube-btn .5s cubic-bezier(.2,1.2,.4,1) both; }
-.menu.aparece .btn-menu:nth-child(1) { animation-delay: .2s; }
-.menu.aparece .btn-menu:nth-child(2) { animation-delay: .28s; }
-.menu.aparece .btn-menu:nth-child(3) { animation-delay: .36s; }
-.menu.aparece .btn-menu:nth-child(4) { animation-delay: .44s; }
+.menu.aparece .btn-menu:nth-child(1) { animation-delay: .18s; }
+.menu.aparece .btn-menu:nth-child(2) { animation-delay: .26s; }
+.menu.aparece .btn-menu:nth-child(3) { animation-delay: .34s; }
+.menu.aparece .btn-menu:nth-child(4) { animation-delay: .42s; }
+.menu.aparece .btn-menu:nth-child(5) { animation-delay: .5s; }
 .menu.aparece > .tabbar { animation: sube-tab .5s .3s cubic-bezier(.2,.9,.3,1) both; }
 @keyframes baja { from { opacity: 0; transform: translateY(-20px); } }
 @keyframes logo-pop { from { opacity: 0; transform: scale(.7); } }
 @keyframes sube-btn { from { opacity: 0; transform: translateY(24px) scale(.96); } }
 @keyframes sube-tab { from { transform: translate(-50%, 100%); } }
 
+/* perfil e iconos de arriba */
 .menu-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; position: relative; z-index: 2; }
-.perfil { appearance: none; display: flex; align-items: center; gap: 10px; min-width: 0; padding: 5px 18px 5px 5px; border-radius: 999px; cursor: pointer; text-align: left;
-  background: linear-gradient(180deg, rgba(40,24,10,.92), rgba(16,9,3,.92)); border: 2px solid #c99a3a; box-shadow: 0 4px 0 #0d0703, 0 8px 18px rgba(0,0,0,.4); }
-.perfil .avatar { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; font-family: var(--display); font-size: 1.5rem; color: #2b1700;
-  background: radial-gradient(circle at 35% 30%, #fff1b0, var(--oro) 60%, var(--oro-hondo)); border: 2px solid #8a5a0c; }
-.perfil .avatar svg { width: 26px; height: 26px; color: #4a2c00; }
-.perfil-txt { display: grid; min-width: 0; }
-.perfil-txt b { font-family: var(--display); font-weight: 400; font-size: 1.15rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.perfil-txt small { color: var(--muted); font-size: .76rem; font-weight: 700; }
-.top-iconos { display: flex; gap: 8px; flex-shrink: 0; }
-.icono-btn { appearance: none; width: 50px; height: 50px; border-radius: 15px; display: grid; place-items: center; cursor: pointer; color: var(--oro);
-  background: linear-gradient(180deg, rgba(40,24,10,.92), rgba(16,9,3,.92)); border: 2px solid #c99a3a; box-shadow: 0 4px 0 #0d0703, 0 8px 18px rgba(0,0,0,.4); }
-.icono-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #0d0703; }
-.icono-btn svg { width: 24px; height: 24px; }
+.perfil { appearance: none; display: flex; align-items: center; gap: 12px; min-width: 0; flex: 0 1 230px; padding: 4px 22px 4px 4px; border-radius: 999px; cursor: pointer; text-align: left;
+  background: linear-gradient(180deg, rgba(10,22,12,.85), rgba(4,12,6,.85)); border: 1.5px solid rgba(201,154,58,.55); box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 6px 16px rgba(0,0,0,.35); }
+.perfil .avatar { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0;
+  background: radial-gradient(circle at 50% 40%, #2a2a2a, #0c0c0c); border: 3px solid #e2ad3c; box-shadow: 0 0 0 2px #6d4507, 0 4px 10px rgba(0,0,0,.5); }
+.perfil .avatar svg { width: 30px; height: 30px; color: #f3e6c8; }
+.perfil-txt { display: grid; min-width: 0; line-height: 1.15; }
+.perfil-txt b { font-family: var(--display); font-weight: 400; font-size: 1.15rem; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.perfil-txt small { display: flex; align-items: center; gap: 5px; color: var(--oro); font-family: var(--display); font-size: 1rem; }
+.estrella { display: inline-grid; width: 18px; height: 18px; color: var(--oro); vertical-align: -3px; }
+.estrella svg { width: 100%; height: 100%; filter: drop-shadow(0 1px 0 #6d4507); }
+.top-iconos { display: flex; gap: 10px; flex-shrink: 0; }
+.icono-btn { appearance: none; width: 48px; height: 48px; border-radius: 16px; display: grid; place-items: center; cursor: pointer; color: #f0b73e;
+  background: linear-gradient(180deg, #2a1d10, #120b05); border: 2.5px solid #d9a33c; box-shadow: inset 0 0 0 2px #3a2208, 0 5px 0 #0b0602, 0 8px 16px rgba(0,0,0,.4); }
+.icono-btn:active { transform: translateY(3px); box-shadow: inset 0 0 0 2px #3a2208, 0 2px 0 #0b0602; }
+.icono-btn svg { width: 25px; height: 25px; filter: drop-shadow(0 1px 0 #3a2208); }
 
-.menu-logo { display: grid; place-items: center; position: relative; z-index: 1; margin: -6px 0 -10px; }
-.menu-logo img { width: min(78vw, 340px); aspect-ratio: 1; object-fit: cover;
+/* logo con brillos */
+.menu-logo { display: grid; place-items: center; position: relative; z-index: 1; margin: -4px 0 -6px; }
+.menu-logo img { width: min(76vw, 330px); aspect-ratio: 1; object-fit: cover;
   -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 62%, transparent 71%); mask-image: radial-gradient(circle at 50% 50%, #000 62%, transparent 71%);
   filter: drop-shadow(0 16px 30px rgba(0,0,0,.55)); }
+.logo-chispas { position: absolute; inset: 0; pointer-events: none; }
+.logo-chispas i { position: absolute; left: var(--x); top: var(--y); width: 14px; height: 14px; opacity: 0; animation: chispa 2.4s var(--d) ease-in-out infinite;
+  background: radial-gradient(circle, #fff 0 18%, transparent 20%), linear-gradient(transparent 46%, #ffe7a0 46% 54%, transparent 54%), linear-gradient(90deg, transparent 46%, #ffe7a0 46% 54%, transparent 54%);
+  filter: drop-shadow(0 0 4px rgba(255,214,110,.9)); }
 
-.menu-botones { display: grid; gap: 14px; position: relative; z-index: 2; }
-.btn-menu { justify-content: flex-start; gap: 0; padding: 0; min-height: 66px; border-radius: 20px; overflow: hidden; font-size: 1.4rem; }
-.btn-menu .menu-ico { width: 72px; align-self: stretch; display: grid; place-items: center; flex-shrink: 0; border-right: 2px solid rgba(0,0,0,.25); box-shadow: 1px 0 0 rgba(255,255,255,.18); }
-.btn-menu .menu-ico svg { width: 30px; height: 30px; }
-.btn-menu.rojo .menu-ico { color: var(--oro-claro); }
-.btn-menu .menu-txt { flex: 1; display: grid; text-align: left; padding: 0 16px; min-width: 0; }
-.btn-menu .menu-txt > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.btn-menu .menu-txt small { font-family: var(--body); font-weight: 800; font-size: .78rem; opacity: .75; text-shadow: none; }
-.btn-menu .menu-fantasma { width: 56px; display: grid; place-items: center; opacity: .2; flex-shrink: 0; }
-.btn-menu .menu-fantasma svg { width: 34px; height: 34px; }
-.btn-menu.mega { min-height: 84px; font-size: 1.75rem; border-width: 3px; }
-.btn-menu.mega .menu-ico { border-right-color: rgba(120,70,0,.3); }
-.btn-menu.mega .menu-ico svg { width: 38px; height: 38px; }
-.btn-menu.mega .menu-fantasma { opacity: .25; }
+/* botones del menú: icono a la izquierda, separador, texto y el mismo icono en relieve a la derecha */
+.menu-botones { display: grid; gap: 12px; padding: 0 clamp(10px, 6vw, 28px); position: relative; z-index: 2; }
+.btn-menu { justify-content: flex-start; gap: 0; padding: 0; min-height: 58px; border-radius: 16px; overflow: hidden; font-size: 1.35rem; border-width: 3px; }
+.btn-menu .menu-ico { width: 68px; align-self: stretch; display: grid; place-items: center; flex-shrink: 0; position: relative; }
+.btn-menu .menu-ico::after { content: ""; position: absolute; right: 0; top: 10px; bottom: 10px; width: 2px; background: rgba(0,0,0,.28); box-shadow: 1px 0 0 rgba(255,255,255,.18); }
+.btn-menu .menu-ico svg { width: 32px; height: 32px; }
+.btn-menu .menu-txt { flex: 1; display: grid; text-align: left; padding: 0 8px 0 18px; min-width: 0; line-height: 1.05; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.btn-menu.rojo .menu-txt { font-size: clamp(1.1rem, 5.4vw, 1.35rem); }
+.btn-menu .menu-txt small { font-family: var(--body); font-weight: 800; font-size: .8rem; opacity: .7; text-shadow: none; }
+.btn-menu .menu-fantasma { width: 64px; display: grid; place-items: center; flex-shrink: 0; }
+.btn-menu .menu-fantasma svg { width: 38px; height: 38px; }
 
+.btn-menu.rojo { border-color: #3d0306; background: linear-gradient(180deg, #c42029 0%, #a3101b 50%, #780910 100%);
+  box-shadow: inset 0 0 0 2px rgba(255,140,120,.35), inset 0 3px 0 rgba(255,180,170,.35), 0 6px 0 #3d0306, 0 12px 22px rgba(0,0,0,.45); }
+.btn-menu.rojo .menu-ico { color: #f2bd45; }
+.btn-menu.rojo .menu-ico svg { filter: drop-shadow(0 2px 0 #5a0a0a); }
+.btn-menu.rojo .menu-txt { color: #fff3dc; text-shadow: 0 2px 0 #5a0408; }
+.btn-menu.rojo .menu-fantasma { color: #8a0c16; }
+.btn-menu.rojo .menu-fantasma svg { filter: drop-shadow(0 1px 0 rgba(255,120,110,.35)); }
+.btn-menu.rojo:active { box-shadow: inset 0 0 0 2px rgba(255,140,120,.35), 0 2px 0 #3d0306, 0 6px 12px rgba(0,0,0,.45); }
+
+.btn-menu.oro.mega { min-height: 80px; font-size: 2.3rem; border-color: #3a2203; border-width: 3.5px; border-radius: 22px;
+  background: linear-gradient(180deg, #ffe28a 0%, #f8c94c 40%, #e9a92a 100%);
+  box-shadow: inset 0 0 0 3px #f9d877, inset 0 -6px 0 rgba(160,95,0,.35), 0 7px 0 #3a2203, 0 16px 30px rgba(0,0,0,.5), 0 0 30px rgba(246,198,74,.25); }
+.btn-menu.oro.mega .menu-ico { width: 88px; color: #241300; }
+.btn-menu.oro.mega .menu-ico::after { display: none; }
+.btn-menu.oro.mega .menu-ico svg { width: 46px; height: 46px; }
+.btn-menu.oro.mega .menu-txt { text-align: center; padding: 0; color: #2b1700; text-shadow: 0 2px 0 rgba(255,240,190,.6); }
+.btn-menu.oro.mega .menu-fantasma { width: 88px; color: #e2a224; }
+.btn-menu.oro.mega .menu-fantasma svg { width: 58px; height: 46px; filter: drop-shadow(0 1px 0 rgba(255,240,190,.6)) drop-shadow(0 -1px 0 rgba(140,80,0,.4)); }
+.btn-menu.oro.mega:active { box-shadow: inset 0 0 0 3px #f9d877, 0 2px 0 #3a2203, 0 6px 14px rgba(0,0,0,.5); }
+
+/* cartas y coronas de fondo, como en el diseño */
 .menu-decor { position: absolute; inset: 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px))); pointer-events: none; z-index: 0; overflow: hidden; }
-.menu-decor .decor { position: absolute; --w: 120px; opacity: .55; filter: blur(.4px) saturate(.9); }
-.menu-decor .decor .cara { box-shadow: 0 10px 30px rgba(0,0,0,.5); }
-.menu-decor .d1 { left: -50px; top: 120px; transform: rotate(-18deg); }
-.menu-decor .d2 { right: -54px; top: 250px; transform: rotate(16deg); }
-.menu-decor .d3 { left: -60px; bottom: 140px; transform: rotate(14deg); }
-.menu-decor .d4 { right: -56px; bottom: 90px; transform: rotate(-12deg); }
-.decor-corona { position: absolute; width: 56px; color: rgba(255,214,110,.13); }
-.decor-corona.c1 { right: 24px; top: 160px; transform: rotate(14deg); }
-.decor-corona.c2 { left: 26px; top: 47%; transform: rotate(-12deg); }
+.menu-decor .decor { position: absolute; --w: 112px; opacity: .72; }
+.menu-decor .decor .cara { box-shadow: 0 12px 30px rgba(0,0,0,.55); filter: sepia(.55) saturate(.8) brightness(.88); }
+.menu-decor .d1 { left: -44px; top: 140px; transform: rotate(-16deg); }
+.menu-decor .d2 { right: -58px; top: 240px; transform: rotate(-22deg); }
+.menu-decor .d3 { left: -60px; bottom: 96px; transform: rotate(-22deg); }
+.menu-decor .d4 { right: -62px; bottom: 80px; transform: rotate(24deg); }
+.decor-corona { position: absolute; width: 60px; color: rgba(140,200,140,.12); }
+.decor-corona.c1 { right: 20px; top: 140px; transform: rotate(12deg); }
+.decor-corona.c2 { left: 14px; top: 46%; transform: rotate(-10deg); }
 
+/* barra de abajo */
 .tabbar { position: fixed; z-index: 15; left: 50%; transform: translateX(-50%); bottom: 0; width: 100%; max-width: 560px;
   display: grid; grid-template-columns: repeat(4, 1fr);
-  padding: 8px max(10px, env(safe-area-inset-left, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(10px, env(safe-area-inset-right, 0px));
-  background: linear-gradient(180deg, #24150a, #0f0803); border-top: 3px solid #c99a3a; border-radius: 26px 26px 0 0; box-shadow: 0 -10px 30px rgba(0,0,0,.5); }
-.tab { appearance: none; background: none; border: 0; display: grid; justify-items: center; gap: 3px; padding: 6px 0; cursor: pointer; color: #8f7d63; font-weight: 800; font-size: .8rem; }
-.tab + .tab { border-left: 1px solid rgba(201,154,58,.18); }
-.tab svg { width: 26px; height: 26px; }
-.tab.activa { color: var(--oro); }
-.tab.activa svg { filter: drop-shadow(0 0 8px rgba(246,198,74,.5)); }
+  padding: 10px max(8px, env(safe-area-inset-left, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-right, 0px));
+  background: linear-gradient(180deg, #1e140b, #0c0804); border-top: 2.5px solid #c99a3a; border-radius: 30px 30px 0 0; box-shadow: 0 -10px 30px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,220,150,.12); }
+.tab { appearance: none; background: none; border: 0; display: grid; justify-items: center; gap: 4px; padding: 4px 0; cursor: pointer; color: #8b7c68; font-family: var(--body); font-weight: 800; font-size: .86rem; }
+.tab + .tab { border-left: 1px solid rgba(201,154,58,.22); }
+.tab svg { width: 34px; height: 34px; }
+.tab.activa { color: #f2b63a; }
+.tab.activa svg { filter: drop-shadow(0 2px 0 #6d4507) drop-shadow(0 0 10px rgba(246,198,74,.35)); }
 
-.creditos { text-align: center; color: var(--muted); font-size: .72rem; opacity: .75; position: relative; z-index: 2; }
+.creditos { text-align: center; color: var(--muted); font-size: .74rem; opacity: .8; }
 .creditos a { color: inherit; }
-.instalar { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 18px; background: var(--panel); border: 2px solid var(--borde); position: relative; z-index: 2; }
-.instalar p { flex: 1; font-size: .9rem; font-weight: 700; }
+.separador { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: .85rem; }
+.separador::before, .separador::after { content: ""; flex: 1; height: 2px; background: var(--borde-suave); }
+
+/* ---- hojas del menú: tienda, estadísticas, ranking, recompensas ---- */
+.hoja.ancha { max-width: 640px; }
+.saldo { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-weight: 700; }
+.saldo b { font-family: var(--display); font-weight: 400; font-size: 1.3rem; color: var(--oro); }
+.tienda { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 16px 12px; }
+.articulo { display: grid; justify-items: center; gap: 8px; padding: 12px 6px; border-radius: 18px; background: rgba(0,0,0,.28); border: 2px solid var(--borde-suave); text-align: center; }
+.articulo.activo { border-color: var(--oro); box-shadow: 0 0 18px rgba(246,198,74,.3); }
+.articulo .naipe { --w: 78px; }
+.articulo b { font-family: var(--display); font-weight: 400; font-size: .98rem; }
+.articulo .btn { min-height: 38px; font-size: .95rem; padding: 4px 12px; }
+.articulo .btn .estrella { width: 16px; height: 16px; color: #6d4507; }
+.precio.puesto { font-family: var(--display); color: var(--bien); min-height: 38px; display: grid; place-items: center; }
+.datos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.dato { display: grid; gap: 2px; padding: 14px; border-radius: 18px; background: rgba(0,0,0,.28); border: 2px solid var(--borde-suave); }
+.dato b { font-family: var(--display); font-weight: 400; font-size: 2rem; color: var(--oro); line-height: 1; }
+.dato span { font-size: .86rem; color: var(--muted); font-weight: 800; }
+.aviso-grande { display: flex; gap: 14px; align-items: center; padding: 16px; border-radius: 18px; background: rgba(0,0,0,.28); border: 2px solid var(--borde-suave); }
+.aviso-grande > span { width: 54px; flex-shrink: 0; color: var(--oro); }
+.aviso-grande b { color: var(--oro); }
+.ranking { display: grid; gap: 8px; }
+.rk { display: grid; grid-template-columns: 40px 1fr auto; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 16px; background: rgba(0,0,0,.28); border: 2px solid var(--borde-suave); font-weight: 800; }
+.rk .pos { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-family: var(--display); background: rgba(255,255,255,.1); }
+.rk.top1 .pos { background: radial-gradient(circle at 35% 30%, #fff1b0, var(--oro) 60%, var(--oro-hondo)); color: #2b1700; }
+.rk.top2 .pos { background: radial-gradient(circle at 35% 30%, #fff, #c9c9c9 60%, #8a8a8a); color: #222; }
+.rk.top3 .pos { background: radial-gradient(circle at 35% 30%, #ffd7b0, #cd7f32 60%, #7a4a1a); color: #2b1700; }
+.rk .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.rk .gan { color: var(--oro); font-size: .9rem; }
+.diaria { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 14px; border-radius: 20px;
+  background: linear-gradient(180deg, rgba(246,198,74,.22), rgba(246,198,74,.06)); border: 2px solid var(--oro); }
+.diaria .regalo { width: 52px; height: 52px; color: var(--oro); }
+.diaria b { font-family: var(--display); font-weight: 400; font-size: 1.15rem; }
+.logros { display: grid; gap: 8px; }
+.logro { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 16px; background: rgba(0,0,0,.28); border: 2px solid var(--borde-suave); opacity: .8; }
+.logro.ok { opacity: 1; border-color: var(--oro); }
+.logro-ico { width: 32px; height: 32px; color: #8b7c68; }
+.logro.ok .logro-ico { color: var(--oro); }
+.logro b { font-family: var(--display); font-weight: 400; }
+.logro .premio { font-family: var(--display); color: var(--oro); font-size: .95rem; white-space: nowrap; }
 
 /* ---- hojas del menú ---- */
 .codigo-input { text-transform: uppercase; letter-spacing: .4em; text-align: center; font-family: var(--display) !important; font-weight: 400 !important; font-size: 30px !important; min-height: 66px !important; }
@@ -341,6 +408,7 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
     const a = snap;
     if (a && a.sid === b.sid && b.v < a.v) return;
     snap = b;
+    try { contarProgreso(b); } catch (_) { /* las estadísticas no deben romper la partida */ }
     if (b.k !== 'juego' || b.ph !== 'over') { showWinner = false; clearTimeout(overTimer); overTimer = null; }
     if (b.k !== 'juego') { banner = null; shownCard = null; render(); return; }
 
@@ -410,7 +478,72 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); input.blur(); } });
     return h('div', { class: 'campo campo-solo' }, input);
   }
-  let afterName = null; // acción pendiente hasta que el jugador ponga nombre
+  // =====================================================================
+  //  PERFIL LOCAL: estrellas, dorsos, estadísticas, rivales y logros (se guarda en este móvil)
+  // =====================================================================
+  const KEY_PERFIL = 'larata-perfil';
+  const hoy = () => new Date().toISOString().slice(0, 10);
+  const perfil = Object.assign({
+    estrellas: 150, dorso: 'borgona', comprados: ['borgona'],
+    stats: { partidas: 0, ganadas: 0, rondas: 0, masBaja: 0, vidasPerdidas: 0, cambios: 0 },
+    rivales: {}, recompensa: null, racha: 0, logros: [], vistos: [],
+  }, store.get(KEY_PERFIL) || {});
+  if (!myName) { myName = `Jugador${100 + Math.floor(Math.random() * 900)}`; store.set(KEY_NAME, myName); }
+  const guardarPerfil = () => store.set(KEY_PERFIL, perfil);
+  guardarPerfil();
+
+  const LOGROS = [
+    { id: 'primera', nombre: 'Primera partida', desc: 'Juega una partida completa', premio: 50, ok: () => perfil.stats.partidas >= 1 },
+    { id: 'victoria', nombre: 'La rata más lista', desc: 'Gana tu primera partida', premio: 100, ok: () => perfil.stats.ganadas >= 1 },
+    { id: 'diez', nombre: 'Habitual del bar', desc: 'Juega 10 partidas', premio: 150, ok: () => perfil.stats.partidas >= 10 },
+    { id: 'cambiador', nombre: 'Trilero', desc: 'Cambia la carta 20 veces', premio: 80, ok: () => perfil.stats.cambios >= 20 },
+    { id: 'cinco', nombre: 'Racha de oro', desc: 'Gana 5 partidas', premio: 200, ok: () => perfil.stats.ganadas >= 5 },
+  ];
+  function premiar(n, motivo) {
+    perfil.estrellas += n;
+    guardarPerfil();
+    toast(`+${n} ★ · ${motivo}`);
+  }
+  function revisarLogros() {
+    for (const l of LOGROS) if (!perfil.logros.includes(l.id) && l.ok()) { perfil.logros.push(l.id); premiar(l.premio, `Logro: ${l.nombre}`); }
+  }
+  /** Una sola vez por suceso (aunque llegue repetido al reconectar). */
+  function primeraVez(clave) {
+    if (perfil.vistos.includes(clave)) return false;
+    perfil.vistos.push(clave);
+    perfil.vistos = perfil.vistos.slice(-40);
+    return true;
+  }
+  /** Se llama con cada estado nuevo: cuenta rondas, cambios y partidas para estadísticas y estrellas. */
+  function contarProgreso(b) {
+    if (!b || b.k !== 'juego') return;
+    for (const [type, pid] of b.ac || []) if (type === 'swap' && pid === b.me && primeraVez(`${b.sid}:${b.r}:cambio`)) perfil.stats.cambios += 1;
+    if (b.ph !== 'turns' && b.res && b.res.rv.some(([pid]) => pid === b.me) && primeraVez(`${b.sid}:${b.r}:ronda`)) {
+      perfil.stats.rondas += 1;
+      const d = b.res.la[b.me] - b.res.lb[b.me];
+      if (b.res.lo.includes(b.me)) perfil.stats.masBaja += 1;
+      if (d < 0) perfil.stats.vidasPerdidas += -d;
+      else perfil.estrellas += 5;
+    }
+    if (b.ph === 'over' && b.pl.some((p) => p.p === b.me) && primeraVez(`${b.sid}:fin`)) {
+      perfil.stats.partidas += 1;
+      const gano = b.win === b.me;
+      if (gano) perfil.stats.ganadas += 1;
+      for (const p of b.pl) {
+        if (p.p === b.me) continue;
+        const r = perfil.rivales[p.n] || { partidas: 0, ganadas: 0, perdidas: 0 };
+        r.partidas += 1;
+        if (gano) r.ganadas += 1; else if (b.win === p.p) r.perdidas += 1;
+        perfil.rivales[p.n] = r;
+      }
+      guardarPerfil();
+      premiar(gano ? 50 : 10, gano ? 'Has ganado la partida' : 'Partida jugada');
+      revisarLogros();
+    }
+    guardarPerfil();
+  }
+
+  let afterName = null;
   function needName(then) {
     myName = (myName || '').replace(/\s+/g, ' ').trim();
     store.set(KEY_NAME, myName);
@@ -426,27 +559,16 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
   const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
   async function installNow() { const e = installEvent; installEvent = null; try { await e.prompt(); } catch (_) { /* cancelado */ } render(); }
 
-  function installCard() {
-    if (standalone()) return null;
-    if (installEvent) {
-      return h('div', { class: 'instalar' }, h('p', null, 'Instala La Rata y ábrela como una app más.'),
-        h('button', { class: 'btn chico oro', tap: installNow }, 'Instalar'));
-    }
-    if (isIOS()) return h('div', { class: 'instalar' }, h('p', null, 'Para instalarla: Compartir en Safari → «Añadir a pantalla de inicio».'));
-    return null;
-  }
-
   // --- intro con el logo ---
   let introOn = true;
   function showIntro() {
     const ases = ['espadas', 'copas', 'bastos', 'oros'].map((suit) => naipe({ rank: 1, suit }, { up: true }));
-    const toca = h('p', { class: 'intro-toca' }, 'Toca para empezar');
     const intro = h('div', { class: 'intro', role: 'button', 'aria-label': 'Entrar en La Rata' },
       h('div', { class: 'intro-rayos', 'aria-hidden': 'true' }),
       h('div', { class: 'intro-cartas', 'aria-hidden': 'true' }, ases),
       h('img', { class: 'intro-logo', src: logoSrc(), alt: 'La Rata' }),
       h('div', { class: 'intro-chispas', 'aria-hidden': 'true' }, Array.from({ length: 14 }, (_, i) => h('i', { style: `--x:${(i * 37) % 100}%;--y:${(i * 53) % 100}%;--d:${(i % 7) * 0.25}s` }))),
-      toca);
+      h('p', { class: 'intro-toca' }, 'Toca para empezar'));
     let done = false;
     const salir = () => {
       if (done) return;
@@ -459,55 +581,55 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
     document.body.appendChild(intro);
   }
 
-  // --- menú principal ---
-  function menuBtn(cls, icon, label, action, sub) {
+  // --- menú principal (igual que el diseño de referencia) ---
+  function menuBtn(cls, icon, label, action, right) {
     return h('button', { class: `btn btn-menu ${cls}`, tap: action },
       h('span', { class: 'menu-ico', html: ICON[icon] }),
-      h('span', { class: 'menu-txt' }, h('span', null, label), sub ? h('small', null, sub) : null),
-      h('span', { class: 'menu-fantasma', html: ICON[icon] }));
+      h('span', { class: 'menu-txt' }, label),
+      h('span', { class: 'menu-fantasma', html: ICON[right] }));
   }
+  const abrir = (nombre) => () => { sheet = nombre; renderSheet(); };
 
   function fromLink() {
     return (new URLSearchParams(location.search).get('sala') || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5);
   }
-
   function joinCode(c) {
     if (needName(() => joinCode(c))) return;
     if (c.length !== 5) { toast('El código tiene 5 letras.'); return; }
     sheet = null; renderSheet();
     act('join', { code: c, name: myName });
   }
-  function createRoom() {
-    if (needName(createRoom)) return;
-    act('create', { name: myName, config: { lives: 2 } });
+  function createRoom(lives) {
+    if (needName(() => createRoom(lives))) return;
+    sheet = null; renderSheet();
+    act('create', { name: myName, config: { lives: lives || 2 } });
   }
 
   function screenHome() {
     const invited = fromLink();
-    const nombre = (myName || '').trim();
-    const perfil = h('button', { class: 'perfil', tap: () => { sheet = 'perfil'; renderSheet(); } },
-      h('span', { class: 'avatar' }, nombre ? nombre.charAt(0).toUpperCase() : h('span', { html: ICON.persona })),
-      h('span', { class: 'perfil-txt' }, h('b', null, nombre || 'Pon tu nombre'), h('small', null, nombre ? 'Toca para cambiarlo' : 'Toca para ponerlo')));
-    const top = h('div', { class: 'menu-top' }, perfil,
+    const perfilBtn = h('button', { class: 'perfil', tap: abrir('perfil') },
+      h('span', { class: 'avatar', html: ICON.persona }),
+      h('span', { class: 'perfil-txt' }, h('b', null, myName), h('small', null, h('span', { class: 'estrella', html: ICON.estrella }), String(perfil.estrellas))));
+    const top = h('div', { class: 'menu-top' }, perfilBtn,
       h('div', { class: 'top-iconos' },
-        h('button', { class: 'icono-btn', 'aria-label': 'Reglas', tap: () => { sheet = 'reglas'; renderSheet(); } }, h('span', { html: ICON.libro })),
-        h('button', { class: 'icono-btn', 'aria-label': 'Ajustes', tap: () => { sheet = 'perfil'; renderSheet(); } }, h('span', { html: ICON.ajustes }))));
+        h('button', { class: 'icono-btn', 'aria-label': 'Ajustes', tap: abrir('perfil') }, h('span', { html: ICON.ajustes })),
+        h('button', { class: 'icono-btn', 'aria-label': 'Estadísticas', tap: abrir('estadisticas') }, h('span', { html: ICON.barras }))));
 
     const botones = h('div', { class: 'menu-botones' },
-      invited
-        ? menuBtn('oro mega', 'jugar', 'Jugar', () => joinCode(invited), `Entrar a la sala ${invited}`)
-        : menuBtn('oro mega', 'jugar', 'Jugar', () => { sheet = 'unirse'; renderSheet(); }, 'Únete con el código de tus amigos'),
-      menuBtn('rojo', 'grupo', 'Crear partida', createRoom),
-      menuBtn('rojo', 'movil', 'Un solo móvil', () => { location.href = '/una-pantalla.html'; }),
-      menuBtn('rojo', 'libro', 'Cómo se juega', () => { sheet = 'reglas'; renderSheet(); }));
+      menuBtn('oro mega', 'jugar', 'Jugar', invited ? () => joinCode(invited) : abrir('unirse'), 'corona'),
+      menuBtn('rojo', 'grupo', 'Crear partida', () => createRoom(2), 'mundo'),
+      menuBtn('rojo', 'trofeo', 'Torneos', abrir('torneos'), 'laurel'),
+      menuBtn('rojo', 'tienda', 'Tienda', abrir('tienda'), 'carrito'),
+      menuBtn('rojo', 'barras', 'Estadísticas', abrir('estadisticas'), 'tendencia'));
     if (pending) botones.querySelectorAll('button').forEach((b) => { b.disabled = true; });
+    if (invited) botones.firstChild.querySelector('.menu-txt').append(h('small', null, `Sala ${invited}`));
 
     const tab = (icon, label, action, active) => h('button', { class: `tab ${active ? 'activa' : ''}`, tap: action }, h('span', { html: ICON[icon] }), h('span', null, label));
     const tabbar = h('nav', { class: 'tabbar', 'aria-label': 'Menú' },
       tab('casa', 'Inicio', () => {}, true),
-      tab('llave', 'Unirse', () => { sheet = 'unirse'; renderSheet(); }),
-      tab('movil', 'Un móvil', () => { location.href = '/una-pantalla.html'; }),
-      tab('persona', 'Perfil', () => { sheet = 'perfil'; renderSheet(); }));
+      tab('amigos', 'Amigos', abrir('amigos')),
+      tab('podio', 'Ranking', abrir('ranking')),
+      tab('regalo', 'Recompensas', abrir('recompensas')));
 
     const decor = h('div', { class: 'menu-decor', 'aria-hidden': 'true' },
       naipe({ rank: 1, suit: 'copas' }, { up: true, cls: 'decor d1' }),
@@ -519,26 +641,36 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
 
     return h('section', { class: `screen menu ${introOn ? 'oculto' : 'aparece'}` },
       decor, top,
-      h('div', { class: 'menu-logo' }, h('img', { src: logoSrc(), alt: 'La Rata' })),
-      botones,
-      installCard(),
-      h('p', { class: 'creditos' }, 'Naipes: baraja española de Basquetteur (Wikimedia Commons), ', h('a', { href: 'https://creativecommons.org/licenses/by-sa/3.0/deed.es', target: '_blank', rel: 'noopener' }, 'CC BY-SA 3.0'), '. Oros retocados.'),
-      tabbar);
+      h('div', { class: 'menu-logo' }, h('img', { src: logoSrc(), alt: 'La Rata' }),
+        h('div', { class: 'logo-chispas', 'aria-hidden': 'true' }, Array.from({ length: 9 }, (_, i) => h('i', { style: `--x:${[8, 88, 20, 80, 50, 4, 94, 30, 70][i]}%;--y:${[18, 22, 60, 66, 4, 44, 48, 92, 90][i]}%;--d:${i * 0.3}s` })))),
+      botones, tabbar);
   }
 
-  // --- hojas del menú: unirse, perfil y reglas ---
-  function renderMenuSheet() {
+  // --- hojas del menú ---
+  function hoja(titulo, contenido, extraCls) {
     const cerrar = () => { sheet = null; afterName = null; renderSheet(); };
-    let body;
+    const velo = h('div', { class: 'velo' }, h('div', { class: `hoja ${extraCls || ''}`, role: 'dialog', 'aria-modal': 'true', 'aria-label': titulo },
+      h('div', { class: 'hoja-cab' }, h('h2', null, titulo), h('button', { class: 'btn chico', tap: cerrar }, 'Cerrar')), contenido));
+    velo.addEventListener('click', (e) => { if (e.target === velo) cerrar(); });
+    document.body.appendChild(velo);
+    return cerrar;
+  }
+  const dato = (valor, etiqueta) => h('div', { class: 'dato' }, h('b', null, String(valor)), h('span', null, etiqueta));
+
+  function renderMenuSheet() {
     if (sheet === 'unirse') {
       const code = h('input', { id: 'codigo', class: 'entrada codigo-input', type: 'text', maxlength: '5', autocomplete: 'off', autocapitalize: 'characters', enterkeyhint: 'go', placeholder: 'ABCDE', 'aria-label': 'Código de sala' });
       code.value = fromLink();
       const go = () => joinCode(code.value.trim().toUpperCase());
       code.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); go(); } });
-      body = [h('h2', null, 'Unirse a partida'), h('p', { class: 'muted' }, 'Escribe el código de 5 letras que sale en el móvil de quien ha creado la partida.'),
-        code, h('button', { class: 'btn oro', tap: go }, h('span', { html: ICON.llave }), 'Entrar')];
+      hoja('Jugar', [h('p', { class: 'muted' }, 'Escribe el código de 5 letras que sale en el móvil de quien ha creado la partida.'), code,
+        h('button', { class: 'btn oro', tap: go }, h('span', { html: ICON.llave }), 'Entrar'),
+        h('p', { class: 'separador' }, 'o'),
+        h('button', { class: 'btn', tap: () => { location.href = '/una-pantalla.html'; } }, h('span', { html: ICON.movil }), 'Jugar con un solo móvil')]);
       setTimeout(() => code.focus(), 60);
-    } else if (sheet === 'perfil') {
+      return;
+    }
+    if (sheet === 'perfil') {
       const input = h('input', { id: 'mi-nombre', class: 'entrada', type: 'text', maxlength: '20', autocomplete: 'nickname', enterkeyhint: 'done', placeholder: 'Tu nombre', 'aria-label': 'Tu nombre' });
       input.value = myName;
       const vibra = store.get('larata-vibrar') !== false;
@@ -550,26 +682,96 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
         if (then) then();
       };
       input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); guardar(); } });
-      body = [h('h2', null, afterName ? '¿Cómo te llamas?' : 'Tu perfil'),
-        h('label', { class: 'etiqueta', for: 'mi-nombre' }, 'Nombre en la mesa'), input,
-        h('button', { class: 'toggle', 'aria-pressed': String(vibra), tap: (e) => { store.set('larata-vibrar', !vibra); renderSheet(); } }, vibra ? 'Vibración activada' : 'Vibración desactivada'),
+      hoja(afterName ? '¿Cómo te llamas?' : 'Ajustes', [
+        h('label', { class: 'etiqueta', for: 'mi-nombre' }, 'Tu nombre en la mesa'), input,
+        h('button', { class: 'toggle', 'aria-pressed': String(vibra), tap: () => { store.set('larata-vibrar', !vibra); renderSheet(); } }, vibra ? 'Vibración activada' : 'Vibración desactivada'),
         installEvent && !standalone() ? h('button', { class: 'btn', tap: installNow }, 'Instalar la app') : null,
-        h('button', { class: 'btn oro', tap: guardar }, afterName ? 'Continuar' : 'Guardar')];
-      if (!myName) setTimeout(() => input.focus(), 60);
-    } else {
-      body = [h('h2', null, 'Cómo se juega'), h('ol', { class: 'lista-reglas' },
-        h('li', null, 'Cada uno recibe una carta y solo ve la suya.'),
-        h('li', null, 'Por turnos: te la quedas o la cambias con el siguiente. Si te la cambian, ves cómo se va tu carta y llega la suya.'),
-        h('li', null, 'Quien reparte (va rotando) juega el último. Si tiene la carta más baja puede levantar baraja y quedarse la de arriba del mazo.'),
-        h('li', null, 'Al final se enseñan las cartas: pierde 1 vida quien tenga la más baja. Si empatan, pierden todos los empatados.'),
-        h('li', null, 'As de bastos: quien lo tiene pierde 2 vidas en total. Rey de bastos: +1 vida, salvo con pelle.'),
-        h('li', null, 'Sin vidas quedas fuera. Gana el último que siga vivo. Si los últimos caen a la vez, repiten ronda entre ellos.')),
-        h('button', { class: 'btn oro', tap: cerrar }, 'Entendido')];
+        isIOS() && !standalone() ? h('p', { class: 'muted small' }, 'Para instalarla: Compartir en Safari → «Añadir a pantalla de inicio».') : null,
+        h('button', { class: 'btn', tap: () => { location.href = '/una-pantalla.html'; } }, h('span', { html: ICON.movil }), 'Jugar con un solo móvil'),
+        h('button', { class: 'btn', tap: abrir('reglas') }, h('span', { html: ICON.libro }), 'Cómo se juega'),
+        h('button', { class: 'btn oro', tap: guardar }, afterName ? 'Continuar' : 'Guardar'),
+        h('p', { class: 'creditos' }, 'Naipes: baraja española de Basquetteur (Wikimedia Commons), ', h('a', { href: 'https://creativecommons.org/licenses/by-sa/3.0/deed.es', target: '_blank', rel: 'noopener' }, 'CC BY-SA 3.0'), '. Oros retocados.')]);
+      return;
     }
-    const velo = h('div', { class: 'velo' }, h('div', { class: 'hoja', role: 'dialog', 'aria-modal': 'true' },
-      h('div', { class: 'hoja-cab' }, body[0], h('button', { class: 'btn chico', tap: cerrar }, 'Cerrar')), body.slice(1)));
-    velo.addEventListener('click', (e) => { if (e.target === velo) cerrar(); });
-    document.body.appendChild(velo);
+    if (sheet === 'tienda') {
+      const grid = h('div', { class: 'tienda' }, Object.entries(DORSOS).map(([id, d]) => {
+        const tengo = perfil.comprados.includes(id);
+        const puesto = perfil.dorso === id;
+        const btn = puesto ? h('span', { class: 'precio puesto' }, 'Equipado')
+          : tengo ? h('button', { class: 'btn chico', tap: () => { perfil.dorso = id; guardarPerfil(); toast(`Dorso ${d.nombre} equipado`); renderSheet(); } }, 'Equipar')
+            : h('button', { class: 'btn chico oro', disabled: perfil.estrellas < d.precio ? true : null, tap: () => {
+              if (perfil.estrellas < d.precio) return;
+              perfil.estrellas -= d.precio; perfil.comprados.push(id); perfil.dorso = id; guardarPerfil();
+              toast(`¡Comprado! Dorso ${d.nombre} equipado`); renderSheet(); render();
+            } }, h('span', { class: 'estrella', html: ICON.estrella }), String(d.precio));
+        return h('div', { class: `articulo ${puesto ? 'activo' : ''}` }, naipe(null, { dorso: id }), h('b', null, d.nombre), btn);
+      }));
+      hoja('Tienda', [h('p', { class: 'saldo' }, 'Tienes ', h('span', { class: 'estrella', html: ICON.estrella }), h('b', null, String(perfil.estrellas)), ' estrellas. Personaliza el dorso de tus cartas.'), grid,
+        h('p', { class: 'muted small' }, 'Las estrellas se ganan jugando: +5 por ronda sin perder vida, +10 por partida, +50 si ganas, más la recompensa diaria y los logros.')], 'ancha');
+      return;
+    }
+    if (sheet === 'estadisticas') {
+      const s = perfil.stats;
+      const pct = s.partidas ? Math.round((s.ganadas / s.partidas) * 100) : 0;
+      hoja('Estadísticas', [
+        h('div', { class: 'datos' }, dato(s.partidas, 'Partidas'), dato(s.ganadas, 'Ganadas'), dato(`${pct}%`, 'Victorias'),
+          dato(s.rondas, 'Rondas'), dato(s.masBaja, 'Veces con la más baja'), dato(s.vidasPerdidas, 'Vidas perdidas'), dato(s.cambios, 'Cambios de carta'), dato(perfil.estrellas, 'Estrellas')),
+        h('p', { class: 'muted small' }, 'Se cuentan las partidas jugadas desde este móvil.')]);
+      return;
+    }
+    if (sheet === 'torneos') {
+      hoja('Torneos', [
+        h('div', { class: 'aviso-grande' }, h('span', { html: ICON.trofeo }), h('p', null, h('b', null, 'Los torneos están en camino.'), ' Mientras tanto, monta una partida larga con tus amigos: 5 vidas cada uno.')),
+        h('button', { class: 'btn oro', tap: () => createRoom(5) }, h('span', { html: ICON.trofeo }), 'Crear partida larga (5 vidas)')]);
+      return;
+    }
+    if (sheet === 'amigos' || sheet === 'ranking') {
+      const filas = Object.entries(perfil.rivales);
+      if (sheet === 'amigos') {
+        filas.sort((a, b) => b[1].partidas - a[1].partidas);
+        hoja('Amigos', [
+          filas.length ? h('div', { class: 'jugadores' }, filas.map(([n, r]) => h('div', { class: 'jug' }, h('span', { class: 'nm' }, n), h('span', { class: 'muted small' }, `${r.partidas} partida${r.partidas === 1 ? '' : 's'}`), h('span')))) :
+            h('p', { class: 'muted' }, 'Aquí aparecerá la gente con la que juegues.'),
+          h('button', { class: 'btn oro', tap: () => createRoom(2) }, h('span', { html: ICON.grupo }), 'Crear partida e invitar')]);
+      } else {
+        const yo = { partidas: perfil.stats.partidas, ganadas: perfil.stats.ganadas };
+        const tabla = [[myName + ' (tú)', yo.ganadas, yo.partidas], ...filas.map(([n, r]) => [n, r.perdidas, r.partidas])]
+          .sort((a, b) => b[1] - a[1] || b[2] - a[2]);
+        hoja('Ranking', [
+          h('p', { class: 'muted small' }, 'Partidas ganadas entre la gente con la que has jugado.'),
+          h('div', { class: 'ranking' }, tabla.map(([n, g, p], i) => h('div', { class: `rk ${i < 3 ? 'top' + (i + 1) : ''}` }, h('span', { class: 'pos' }, i + 1), h('span', { class: 'nm' }, n), h('span', { class: 'gan' }, `${g} ganada${g === 1 ? '' : 's'}`))))]);
+      }
+      return;
+    }
+    if (sheet === 'recompensas') {
+      const yaHoy = perfil.recompensa === hoy();
+      const reclamar = () => {
+        if (perfil.recompensa === hoy()) return;
+        const ayer = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
+        perfil.racha = perfil.recompensa === ayer ? Math.min(perfil.racha + 1, 7) : 1;
+        perfil.recompensa = hoy();
+        premiar(20 + perfil.racha * 5, `Recompensa diaria (día ${perfil.racha})`);
+        renderSheet(); render();
+      };
+      hoja('Recompensas', [
+        h('div', { class: 'diaria' }, h('span', { class: 'regalo', html: ICON.regalo }),
+          h('div', null, h('b', null, yaHoy ? '¡Recompensa de hoy cogida!' : 'Recompensa diaria'), h('p', { class: 'muted small' }, yaHoy ? `Vuelve mañana. Racha: ${perfil.racha} día${perfil.racha === 1 ? '' : 's'}.` : 'Entra cada día: cuantos más días seguidos, más estrellas.')),
+          h('button', { class: 'btn chico oro', disabled: yaHoy ? true : null, tap: reclamar }, yaHoy ? 'Hecho' : 'Coger')),
+        h('span', { class: 'etiqueta' }, 'Logros'),
+        h('div', { class: 'logros' }, LOGROS.map((l) => {
+          const ok = perfil.logros.includes(l.id);
+          return h('div', { class: `logro ${ok ? 'ok' : ''}` }, h('span', { class: 'logro-ico', html: ok ? ICON.trofeo : ICON.estrella }), h('div', null, h('b', null, l.nombre), h('p', { class: 'muted small' }, l.desc)), h('span', { class: 'premio' }, ok ? 'Conseguido' : `+${l.premio} ★`));
+        }))]);
+      return;
+    }
+    // reglas
+    hoja('Cómo se juega', [h('ol', { class: 'lista-reglas' },
+      h('li', null, 'Cada uno recibe una carta y solo ve la suya.'),
+      h('li', null, 'Por turnos: te la quedas o la cambias con el siguiente. Si te la cambian, ves cómo se va tu carta y llega la suya.'),
+      h('li', null, 'Quien reparte (va rotando) juega el último. Si tiene la carta más baja puede levantar baraja y quedarse la de arriba del mazo.'),
+      h('li', null, 'Al final se enseñan las cartas: pierde 1 vida quien tenga la más baja. Si empatan, pierden todos los empatados.'),
+      h('li', null, 'As de bastos: quien lo tiene pierde 2 vidas en total. Rey de bastos: +1 vida, salvo con pelle.'),
+      h('li', null, 'Sin vidas quedas fuera. Gana el último que siga vivo. Si los últimos caen a la vez, repiten ronda entre ellos.'))]);
   }
 
   async function shareCode() {
