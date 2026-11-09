@@ -38,12 +38,16 @@ Cada `git push` a la rama principal vuelve a publicar la app sola. El plan gratu
 
 También hay un `Dockerfile` por si prefieres otro proveedor (Railway, Fly.io, un VPS).
 
-## Reglas implementadas
+## Reglas del juego
 
-- Cada uno recibe una carta y solo ve la suya.
-- Por turnos: te la quedas o la cambias con el siguiente de la lista (el último con el primero). Quien reparte en cada ronda (va rotando) juega el último.
-- Quien reparte, si tiene la carta más baja, puede levantar baraja. Si la carta que saca es mayor que la más baja de otro, ese otro pierde.
-- Gana la carta más baja. Un 12 gana la ronda al momento.
-- As de bastos: −2 vidas. Rey de bastos: +1 vida, salvo con pelle (lo da quien lleva la mesa, desde el marcador).
-- Vidas iniciales configurables (2 por defecto). Sin vidas quedas fuera; gana el último vivo.
-- Empate en la carta más baja: configurable (los empatados ganan, o los empatados pierden).
+1. Baraja española de 40 cartas (As al 7, Sota 10, Caballo 11, Rey 12). De 2 a 8 jugadores.
+2. Cada jugador empieza con 2 vidas (configurable en la sala).
+3. Cada jugador recibe una carta y solo ve la suya.
+4. Reparte el primero de la lista y luego va rotando. Empieza a jugar el siguiente a quien reparte; quien reparte juega el último.
+5. En tu turno: te la quedas, o la cambias con el siguiente de la lista (el último con el primero).
+6. Quien reparte, en su turno y solo si tiene la carta más baja, puede levantar baraja: se queda la carta de arriba del mazo.
+7. Al final se enseñan las cartas. Nadie gana la ronda: **pierde 1 vida quien tiene la carta más baja**. Si varios empatan, pierden todos. El palo no importa.
+8. As de bastos: quien lo tiene pierde 2 vidas en total.
+9. Rey de bastos: quien lo tiene gana 1 vida, salvo si tiene el pelle. Los demás reyes no hacen nada.
+10. El pelle lo da a mano quien lleva la mesa (pendiente de definir cómo se consigue).
+11. Sin vidas quedas fuera. Gana el último que siga con vidas. Si los últimos caen a la vez, siguen con 1 vida y repiten ronda entre ellos.

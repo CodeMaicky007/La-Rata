@@ -11,20 +11,15 @@ const enc = (c) => (c ? `${c.rank}${c.suit[0]}` : null);
 
 function roundSummary(state, entryIndex) {
   const e = state.history[entryIndex];
-  const prev = state.history[entryIndex - 1];
   return {
     r: e.round,
-    tw: e.byTwelve,
-    w: e.winners,
-    lo: e.losers,
+    lo: e.losers,                 // quienes tenían la carta más baja
+    tb: e.tiebreak ? 1 : 0,       // los últimos cayeron a la vez: se repite ronda entre ellos
     el: e.eliminated,
     rv: e.reveals.map((x) => [x.playerId, enc(x.card)]),
     ef: e.effects.map((f) => [f.playerId, f.label, f.lives, f.blocked ? 1 : 0]),
     la: e.livesAfter,
-    lb: Object.fromEntries(e.reveals.map((x) => [
-      x.playerId,
-      prev && prev.livesAfter[x.playerId] !== undefined ? prev.livesAfter[x.playerId] : state.config.lives,
-    ])),
+    lb: Object.fromEntries(e.reveals.map((x) => [x.playerId, e.livesBefore[x.playerId]])),
     ac: e.actions.map((a) => [a.type, a.playerId, a.neighborId || null]),
   };
 }
@@ -33,8 +28,6 @@ function snapshotFor(room, viewerId) {
   const s = room.state;
   const cfg = {
     lives: s.config.lives,
-    lost: s.config.livesLostPerRound,
-    tie: s.config.tiePolicy,
     min: s.config.minPlayers,
     max: s.config.maxPlayers,
   };
@@ -72,7 +65,7 @@ function snapshotFor(room, viewerId) {
 /** Entrada compacta del historial de la partida (para el marcador). */
 function historyEntry(state) {
   const e = state.history[state.history.length - 1];
-  return { r: e.round, w: e.winners, tw: e.byTwelve, rv: e.reveals.map((x) => [x.playerId, enc(x.card)]), la: e.livesAfter };
+  return { r: e.round, lo: e.losers, tb: e.tiebreak ? 1 : 0, rv: e.reveals.map((x) => [x.playerId, enc(x.card)]), la: e.livesAfter };
 }
 
 module.exports = { snapshotFor, historyEntry, enc };

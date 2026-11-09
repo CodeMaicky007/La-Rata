@@ -185,8 +185,6 @@ const handlers = {
     const c = msg.config || {};
     const patch = {};
     if ('lives' in c) patch.lives = c.lives;
-    if ('lost' in c) patch.livesLostPerRound = c.lost;
-    if ('tie' in c) patch.tiePolicy = c.tie;
     game.updateConfig(room.state, ws.playerId, patch);
     broadcast(room);
   },

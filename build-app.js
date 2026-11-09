@@ -3,7 +3,6 @@
  * Construye todo lo que se publica:
  *  - public/                   la app instalable que sirve el servidor (index.html, una-pantalla.html, PWA)
  *  - dist/la-rata-app.html     un solo móvil que se pasa de mano en mano (archivo suelto)
- *  - dist/la-rata-online.html  versión para la sala en tiempo real de Claude (sin servidor propio)
  * Uso: node build-app.js        (los iconos PNG se generan con: node build-app.js --iconos)
  */
 const fs = require('fs');
@@ -33,7 +32,6 @@ const inlineCards = (html) => html.replace('<div id="app"></div>', () => `<scrip
 
 const single = fill('app-src/la-rata-app.html');
 write('dist/la-rata-app.html', inlineCards(single));
-write('dist/la-rata-online.html', inlineCards(fill('app-src/la-rata-online.html')));
 
 // App instalable
 const index = fill('app-src/la-rata-server.html');

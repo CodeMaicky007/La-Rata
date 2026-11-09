@@ -207,6 +207,8 @@ details.reglas ul { margin: 10px 0 0; padding-left: 18px; display: grid; gap: 6p
 .cara img { display: block; width: 100%; height: 100%; object-fit: cover; user-select: none; -webkit-user-drag: none; pointer-events: none; }
 .naipe.brilla .cara { box-shadow: 0 0 0 calc(var(--w) * .025) var(--gualda), 0 0 calc(var(--w) * .4) rgba(241,191,0,.65); }
 .naipe.apagada { filter: saturate(.55) brightness(.72); }
+.naipe.pierde .cara { box-shadow: 0 0 0 calc(var(--w) * .03) var(--rojo), 0 0 calc(var(--w) * .4) rgba(200,16,46,.8); }
+.marca-pierde { position: absolute; top: -12px; z-index: 2; font-family: var(--display); font-weight: 900; font-size: .64rem; letter-spacing: .08em; padding: 3px 7px; border-radius: 999px; background: var(--rojo); color: #fff; box-shadow: 0 4px 10px rgba(0,0,0,.4); white-space: nowrap; }
 
 /* ---------- pasar el móvil (un solo móvil) ---------- */
 .pasa { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; padding-top: 10px; }
@@ -530,8 +532,8 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
 
   function cardTags(card) {
     const tags = [];
-    if (card.suit === 'bastos' && card.rank === 1) tags.push(h('span', { class: 'sello malo' }, 'As de bastos: −2 vidas'));
-    if (card.suit === 'bastos' && card.rank === 12) tags.push(h('span', { class: 'sello bueno' }, 'Rey de bastos: +1 vida'));
+    if (card.suit === 'bastos' && card.rank === 1) tags.push(h('span', { class: 'sello malo' }, 'As de bastos: quita 2 vidas'));
+    if (card.suit === 'bastos' && card.rank === 12) tags.push(h('span', { class: 'sello bueno' }, 'Rey de bastos: +1 vida (sin pelle)'));
     return tags;
   }
 
@@ -757,10 +759,10 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
       h('details', { class: 'reglas' }, h('summary', null, 'Reglas'), h('ul', null,
         h('li', null, 'Cada uno recibe una carta y solo ve la suya.'),
         h('li', null, 'En tu turno te la quedas o la cambias con el siguiente. Si te la cambian, verás cómo se va tu carta y llega la suya.'),
-        h('li', null, 'Quien reparte en cada ronda (va rotando) juega el último. Si tiene la carta más baja puede levantar baraja: si la que saca es mayor que la más baja de otro, pierde ese otro.'),
-        h('li', null, 'Gana la carta más baja. Un 12 gana la ronda al momento.'),
-        h('li', null, 'As de bastos: −2 vidas. Rey de bastos: +1 vida, salvo con pelle.'),
-        h('li', null, 'Sin vidas quedas fuera. Gana el último que siga vivo.'))),
+        h('li', null, 'Quien reparte (va rotando) juega el último. Si tiene la carta más baja puede levantar baraja y quedarse la carta de arriba del mazo.'),
+        h('li', null, 'Al final se enseñan las cartas: pierde 1 vida quien tenga la más baja. Si empatan, pierden todos los empatados.'),
+        h('li', null, 'As de bastos: quien lo tiene pierde 2 vidas en total. Rey de bastos: +1 vida, salvo con pelle.'),
+        h('li', null, 'Sin vidas quedas fuera. Gana el último que siga vivo. Si los últimos caen a la vez, repiten ronda entre ellos.'))),
       h('a', { class: 'enlace', href: '/una-pantalla.html' }, '¿Solo hay un móvil? Jugad pasándolo de mano en mano'),
       h('p', { class: 'creditos' }, 'Naipes: baraja española de Basquetteur (Wikimedia Commons), ', h('a', { href: 'https://creativecommons.org/licenses/by-sa/3.0/deed.es', target: '_blank', rel: 'noopener' }, 'CC BY-SA 3.0'), '. Oros retocados.'));
   }
@@ -800,17 +802,11 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
           h('button', { 'aria-label': `Menos ${label.toLowerCase()}`, tap: () => send({ type: 'config', config: { [key]: Math.max(min, snap.cfg[key] - 1) } }) }, '−'),
           h('output', null, snap.cfg[key]),
           h('button', { 'aria-label': `Más ${label.toLowerCase()}`, tap: () => send({ type: 'config', config: { [key]: Math.min(max, snap.cfg[key] + 1) } }) }, '+')));
-      const tie = h('select', { id: 'empate', class: 'campo', 'aria-label': 'Empate en la carta más baja' },
-        h('option', { value: 'empate_todos_ganan' }, 'Los empatados ganan; el resto pierde'),
-        h('option', { value: 'empate_todos_pierden' }, 'Los empatados pierden; el resto no'));
-      tie.value = snap.cfg.tie;
-      tie.addEventListener('change', () => send({ type: 'config', config: { tie: tie.value } }));
       const enough = lobby.length >= snap.cfg.min;
-      parts.push(h('div', { class: 'ajustes' }, contador('VIDAS', 'lives', 1, 20), contador('PIERDES POR RONDA', 'lost', 1, 5)),
-        h('div', { class: 'bloque' }, h('label', { for: 'empate' }, 'SI EMPATAN CON LA MÁS BAJA'), tie),
+      parts.push(h('div', { class: 'ajustes' }, contador('VIDAS INICIALES', 'lives', 1, 20), h('p', { class: 'muted small', style: 'align-self:end' }, 'Cada ronda pierde 1 vida quien tiene la carta más baja.')),
         h('div', { class: 'acciones' }, h('button', { class: 'btn oro', disabled: !enough || pending ? true : null, tap: () => act('start') }, enough ? 'Repartir cartas' : 'Esperando jugadores')));
     } else {
-      parts.push(h('p', { class: 'muted small' }, `${snap.cfg.lives} vidas · pierdes ${snap.cfg.lost} por ronda`),
+      parts.push(h('p', { class: 'muted small' }, `${snap.cfg.lives} vidas · cada ronda pierde 1 quien tiene la carta más baja`),
         h('div', { class: 'acciones' }, h('p', { class: 'estado-turno puntos' }, `Esperando a que ${nameOf(snap.host)} reparta las cartas`)));
     }
     return h('section', { class: 'screen' }, parts);
@@ -928,16 +924,21 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
   }
 
   function summary(res) {
-    if (!res.w.length) return 'Empate en la carta más baja: nadie gana';
-    return `${res.w.length > 1 ? 'Ganan' : 'Gana'} ${res.w.map(nameOf).join(', ')} ${res.tw ? 'con un 12' : 'con la carta más baja'}`;
+    const who = res.lo.map((pid) => (pid === snap.me ? 'Tú' : nameOf(pid))).join(' y ');
+    const verb = res.lo.length > 1 ? 'Pierden' : (res.lo[0] === snap.me ? 'Pierdes' : 'Pierde');
+    const base = res.lo[0] === snap.me && res.lo.length === 1 ? `Pierdes: tienes la carta más baja` : `${verb} ${who}: ${res.lo.length > 1 ? 'empatan con' : 'tiene'} la carta más baja`;
+    return res.tb ? `${base}. Los últimos caen a la vez: siguen con 1 vida y repiten ronda.` : base;
   }
 
   function cronica(res) {
     const b = (pid) => h('b', null, pid === snap.me ? 'Tú' : nameOf(pid));
     const lines = res.ac.map(([t, pid, other]) => (t === 'keep' ? [b(pid), ' se quedó su carta']
       : t === 'swap' ? [b(pid), ' cambió con ', b(other)]
-        : t === 'draw' ? [b(pid), ' levantó baraja'] : [b(pid), ' pierde por la baraja levantada']));
-    for (const [pid, label, lives, blocked] of res.ef) lines.push(blocked ? [b(pid), ` tenía el ${label}, pero con el pelle no suma`] : [b(pid), ` · ${label}: ${lives > 0 ? '+' : ''}${lives} vida${Math.abs(lives) > 1 ? 's' : ''}`]);
+        : [b(pid), ' levantó baraja']));
+    for (const [pid, label, lives, blocked] of res.ef) {
+      lines.push(blocked ? [b(pid), ` tenía el ${label}, pero con el pelle no suma vida`]
+        : lives < 0 ? [b(pid), ` · ${label}: −${-lives} vidas en total`] : [b(pid), ` · ${label}: +${lives} vida`]);
+    }
     if (res.el.length) lines.push([h('b', null, res.el.map(nameOf).join(', ')), ' queda fuera']);
     return lines.length ? h('div', { class: 'cronica' }, lines.map((l) => h('p', null, l))) : null;
   }
@@ -951,13 +952,13 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
     for (const [pid, code] of res.rv) {
       const card = dec(code);
       const d = res.la[pid] - res.lb[pid];
-      const win = res.w.includes(pid);
-      const n = naipe(card, { up: !animate, cls: animate ? '' : (win ? 'brilla' : 'apagada') });
+      const loses = res.lo.includes(pid);
+      const n = naipe(card, { up: !animate, cls: animate ? '' : (loses ? 'pierde' : 'salva') });
       const deltaTxt = d === 0 ? `♥${res.la[pid]}` : `${d > 0 ? '+' : ''}${d} · ♥${Math.max(0, res.la[pid])}`;
       const delta = h('span', { class: `delta ${d < 0 ? 'menos' : d > 0 ? 'mas' : ''}` }, animate ? '' : deltaTxt);
-      const corona = win ? h('span', { class: 'corona', html: CROWN, style: animate ? 'opacity:0' : '' }) : null;
-      rejilla.appendChild(h('div', { class: 'asiento' }, corona, n, h('span', { class: 'nm' }, pid === snap.me ? 'Tú' : nameOf(pid)), delta, res.el.includes(pid) ? h('span', { class: 'fuera' }, 'FUERA') : null));
-      items.push({ n, delta, deltaTxt, win, corona });
+      const marca = loses ? h('span', { class: 'marca-pierde', style: animate ? 'opacity:0' : '' }, 'LA MÁS BAJA') : null;
+      rejilla.appendChild(h('div', { class: 'asiento' }, marca, n, h('span', { class: 'nm' }, pid === snap.me ? 'Tú' : nameOf(pid)), delta, res.el.includes(pid) ? h('span', { class: 'fuera' }, 'FUERA') : null));
+      items.push({ n, delta, deltaTxt, loses, marca });
     }
     const resumen = h('p', { class: 'muted', style: animate ? 'visibility:hidden' : '' }, summary(res));
     const acciones = h('div', { class: 'acciones' });
@@ -970,7 +971,7 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
     }
     const screen = h('section', { class: 'screen' },
       cabecera(`Ronda ${res.r}`),
-      h('div', { class: 'resultado' }, h('span', { class: 'eyebrow' }, res.tw ? '¡HA SALIDO UN 12!' : `RONDA ${res.r}`), h('h2', null, 'Cartas boca arriba'), resumen),
+      h('div', { class: 'resultado' }, h('span', { class: 'eyebrow' }, res.tb ? 'DESEMPATE' : `RONDA ${res.r}`), h('h2', null, 'Cartas boca arriba'), resumen),
       rejilla, cronica(res), acciones);
     if (animate) {
       animating = true;
@@ -979,7 +980,7 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
         for (const x of items) { x.n.classList.add('boca-arriba'); await wait(260); }
         await wait(500);
         for (const x of items) {
-          if (x.win) { x.n.classList.add('brilla'); if (x.corona) { x.corona.style.opacity = ''; x.corona.classList.add('flota'); } } else x.n.classList.add('apagada');
+          if (x.loses) { x.n.classList.add('pierde'); if (x.marca) { x.marca.style.opacity = ''; x.marca.classList.add('flota'); } } else x.n.classList.add('salva');
           x.delta.textContent = x.deltaTxt; x.delta.classList.add('flota');
         }
         resumen.style.visibility = '';
@@ -1043,7 +1044,7 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
     (snap.hi || []).slice().reverse().forEach((e) => {
       historia.appendChild(h('div', { class: 'ent' }, h('h3', null, `Ronda ${e.r}`),
         h('p', null, e.rv.map(([pid, code]) => `${nameOf(pid)}: ${cardName(dec(code))}`).join(' · ')),
-        h('p', { class: 'muted' }, e.w.length ? `Gana ${e.w.map(nameOf).join(', ')}${e.tw ? ' con un 12' : ''}` : 'Nadie gana'),
+        h('p', { class: 'muted' }, `Pierde${e.lo.length > 1 ? 'n' : ''} ${e.lo.map(nameOf).join(' y ')} con la carta más baja${e.tb ? ' (desempate)' : ''}`),
         h('p', { class: 'muted small' }, Object.entries(e.la).map(([pid, l]) => `${nameOf(pid)} ♥${Math.max(0, l)}`).join(' · '))));
     });
     if (!(snap.hi || []).length) historia.appendChild(h('p', { class: 'muted small' }, 'Aún no ha terminado ninguna ronda.'));

@@ -14,33 +14,33 @@
 const SUITS = ['oros', 'copas', 'espadas', 'bastos'];
 // Valores de la baraja española de 40 cartas (sin 8 y 9).
 const RANKS = [1, 2, 3, 4, 5, 6, 7, 10, 11, 12];
-const TIE_POLICIES = ['empate_todos_ganan', 'empate_todos_pierden'];
 const MAX_LIVES = 99;
 const MAX_PLAYERS_LIMIT = 10;
-const TWELVE = 12;
 
 /*
+ * REGLAS DE LA RONDA
+ *  - Nadie gana la ronda: pierde LIVES_LOST vida quien tiene la carta más baja.
+ *    Si varios empatan con la más baja, pierden todos.
+ *  - As de bastos: quien lo tiene pierde 2 vidas EN TOTAL (en lugar de la vida normal).
+ *  - Rey de bastos: quien lo tiene gana 1 vida, salvo si tiene el pelle.
+ *  - Gana la partida el último que siga con vidas. Si los últimos caen a la vez,
+ *    se les deja con 1 vida y repiten ronda entre ellos (desempate).
  * PARÁMETROS
- *  - lives: vidas iniciales (acordado: 2).
- *  - livesLostPerRound: vidas que pierde cada perdedor de la ronda (provisional: 1).
- *  - tiePolicy: empate en la carta más baja (provisional):
- *      'empate_todos_ganan'   -> los empatados ganan; el resto pierde vidas.
- *      'empate_todos_pierden' -> los empatados pierden vidas; el resto no.
+ *  - lives: vidas iniciales (2 por defecto, configurable en la sala).
  */
+const LIVES_LOST = 1;
 const DEFAULT_CONFIG = Object.freeze({
   lives: 2,
-  livesLostPerRound: 1,
-  tiePolicy: 'empate_todos_ganan',
   minPlayers: 2,
   maxPlayers: 8,
 });
 
-// Efectos automáticos de las cartas especiales. Se aplican al revelar la ronda
-// al jugador que tiene la carta en ese momento.
-// Con "pelle" no se recupera vida con el Rey de bastos.
+// Cartas especiales. Se aplican al revelar, a quien tenga la carta en ese momento.
+//  - mode 'total': sustituye a la pérdida normal (el As de bastos quita 2 en total).
+//  - mode 'suma': se suma a lo demás.
 const SPECIAL_EFFECTS = Object.freeze([
-  { suit: 'bastos', rank: 1, lives: -2, label: 'As de bastos', blockedByPelle: false },
-  { suit: 'bastos', rank: 12, lives: 1, label: 'Rey de bastos', blockedByPelle: true },
+  { suit: 'bastos', rank: 1, lives: -2, mode: 'total', label: 'As de bastos', blockedByPelle: false },
+  { suit: 'bastos', rank: 12, lives: 1, mode: 'suma', label: 'Rey de bastos', blockedByPelle: true },
 ]);
 
 class GameError extends Error {
@@ -82,17 +82,13 @@ function normalizeConfig(patch = {}, base = DEFAULT_CONFIG) {
   for (const key of Object.keys(DEFAULT_CONFIG)) {
     if (patch && key in patch) c[key] = patch[key];
   }
-  for (const key of ['lives', 'livesLostPerRound', 'minPlayers', 'maxPlayers']) {
+  for (const key of ['lives', 'minPlayers', 'maxPlayers']) {
     if (!Number.isInteger(c[key])) throw fail(`El valor de ${key} debe ser un número entero`);
   }
   if (c.lives < 1 || c.lives > MAX_LIVES) throw fail(`Las vidas iniciales deben estar entre 1 y ${MAX_LIVES}`);
-  if (c.livesLostPerRound < 1 || c.livesLostPerRound > MAX_LIVES) {
-    throw fail(`Las vidas perdidas por ronda deben estar entre 1 y ${MAX_LIVES}`);
-  }
   if (c.minPlayers < 2) throw fail('Se necesitan al menos 2 jugadores');
   if (c.maxPlayers > MAX_PLAYERS_LIMIT) throw fail(`Máximo ${MAX_PLAYERS_LIMIT} jugadores`);
   if (c.minPlayers > c.maxPlayers) throw fail('El mínimo de jugadores no puede superar al máximo');
-  if (!TIE_POLICIES.includes(c.tiePolicy)) throw fail('Política de empate no válida');
   return c;
 }
 
@@ -114,7 +110,6 @@ function createGame(configPatch = {}) {
     turnOrder: [], // ids de jugadores que actúan en la ronda actual, en orden
     turnIdx: 0,
     roundActions: [], // acciones públicas de la ronda (sin revelar cartas)
-    penalized: [], // jugadores que pierden por un levantamiento de baraja
     revealed: [], // cartas de la última ronda revelada
     history: [],
     winnerId: null,
@@ -172,10 +167,6 @@ function canDraw(state, playerId) {
   if (!me || !me.card) return false;
   const minRank = Math.min(...ps.map((p) => p.card.rank));
   return me.card.rank === minRank && state.deck.length > 0;
-}
-
-function anyTwelve(state) {
-  return participants(state).some((p) => p.card && p.card.rank === TWELVE);
 }
 
 // ---------- sala (lobby) ----------
@@ -283,12 +274,8 @@ function startRound(state, rng) {
   state.turnOrder = order;
   state.turnIdx = 0;
   state.roundActions = [];
-  state.penalized = [];
   state.revealed = [];
   state.phase = 'turns';
-
-  // Un 12 repartido gana la ronda de inmediato.
-  if (anyTwelve(state)) resolveRound(state);
 }
 
 function startGame(state, actorId, rng = Math.random) {
@@ -319,7 +306,6 @@ function restartLobby(state, actorId) {
     turnOrder: [],
     turnIdx: 0,
     roundActions: [],
-    penalized: [],
     revealed: [],
     history: [],
     winnerId: null,
@@ -363,84 +349,40 @@ function swap(state, actorId) {
 
   // Pública, pero sin revelar qué carta se ha movido.
   state.roundActions.push({ type: 'swap', playerId: actorId, neighborId: other.id });
-  if (anyTwelve(state)) resolveRound(state);
-  else advanceTurn(state);
+  advanceTurn(state);
 }
 
 /**
- * Levantar baraja: quien empieza la ronda y tiene la carta más baja roba la carta de arriba
- * y se queda con ella. Si la robada es mayor que la carta más baja de otro jugador,
- * ese jugador pierde la ronda.
+ * Levantar baraja: quien reparte (juega el último), si tiene la carta más baja, coge la carta
+ * de arriba del mazo y se queda con ella. Después se revela y pierde quien tenga la más baja,
+ * así que si la carta nueva es mayor que la de otro, pierde ese otro.
  */
 function draw(state, actorId) {
   assertTurn(state, actorId);
   if (!canDraw(state, actorId)) {
     if (state.turnOrder[state.turnOrder.length - 1] !== actorId) {
-      throw fail('Solo puede levantar baraja quien empieza la ronda, en su turno final');
+      throw fail('Solo puede levantar baraja quien reparte, en su turno');
     }
     if (state.deck.length === 0) throw fail('La baraja está vacía');
     throw fail('Solo puede levantar baraja quien tiene la carta más baja');
   }
-
-  const me = playerById(state, actorId);
-  const drawn = state.deck.shift();
-  me.card = drawn;
+  playerById(state, actorId).card = state.deck.shift();
   state.roundActions.push({ type: 'draw', playerId: actorId });
-
-  if (anyTwelve(state)) {
-    resolveRound(state);
-    return;
-  }
-
-  const others = participants(state).filter((p) => p.id !== actorId);
-  const minOther = Math.min(...others.map((p) => p.card.rank));
-  if (drawn.rank > minOther) {
-    for (const p of others) {
-      if (p.card.rank === minOther) {
-        state.penalized.push(p.id);
-        state.roundActions.push({ type: 'penalty', playerId: p.id });
-      }
-    }
-  }
   advanceTurn(state);
 }
 
-/** Cierre de ronda: revela, aplica pérdidas de vidas y efectos especiales, elimina y comprueba el ganador. */
+/** Cierre de ronda: revela, quita vidas a la carta más baja, aplica las cartas especiales y elimina. */
 function resolveRound(state) {
   const ps = participants(state);
-  const reveals = ps.map((p) => ({
-    playerId: p.id,
-    name: p.name,
-    seat: seatOf(state, p.id),
-    card: { ...p.card },
-  }));
+  const reveals = ps.map((p) => ({ playerId: p.id, name: p.name, seat: seatOf(state, p.id), card: { ...p.card } }));
+  const livesBefore = {};
+  for (const p of state.players) livesBefore[p.id] = p.lives;
 
-  const twelveIds = reveals.filter((r) => r.card.rank === TWELVE).map((r) => r.playerId);
+  // Pierde quien tiene la carta más baja (todos los empatados).
   const minRank = Math.min(...reveals.map((r) => r.card.rank));
-  const lowest = reveals.filter((r) => r.card.rank === minRank).map((r) => r.playerId);
-  const others = reveals.filter((r) => r.card.rank !== minRank).map((r) => r.playerId);
+  const losers = reveals.filter((r) => r.card.rank === minRank).map((r) => r.playerId);
 
-  let winners;
-  let losers;
-  if (twelveIds.length) {
-    // Un 12 gana la ronda; los demás pierden.
-    winners = twelveIds;
-    losers = reveals.filter((r) => r.card.rank !== TWELVE).map((r) => r.playerId);
-  } else if (lowest.length === 1 || state.config.tiePolicy === 'empate_todos_ganan') {
-    winners = lowest;
-    losers = others;
-  } else {
-    winners = [];
-    losers = lowest;
-  }
-
-  // Quien ha sido penalizado por levantar baraja pierde aunque tuviera la carta más baja.
-  winners = winners.filter((id) => !state.penalized.includes(id));
-  losers = [...new Set([...losers, ...state.penalized])];
-
-  const lost = state.config.livesLostPerRound;
-  for (const id of losers) playerById(state, id).lives -= lost;
-
+  const delta = Object.fromEntries(ps.map((p) => [p.id, losers.includes(p.id) ? -LIVES_LOST : 0]));
   const effects = [];
   for (const r of reveals) {
     const effect = specialEffectFor(r.card);
@@ -450,17 +392,24 @@ function resolveRound(state) {
       effects.push({ playerId: r.playerId, label: effect.label, lives: 0, blocked: true });
       continue;
     }
-    holder.lives += effect.lives;
-    effects.push({ playerId: r.playerId, label: effect.label, lives: effect.lives, blocked: false });
+    if (effect.mode === 'total') delta[r.playerId] = effect.lives;
+    else delta[r.playerId] += effect.lives;
+    effects.push({ playerId: r.playerId, label: effect.label, lives: effect.lives, blocked: false, mode: effect.mode });
   }
+  for (const p of ps) p.lives += delta[p.id];
 
-  const eliminated = [];
-  for (const p of ps) {
-    if (p.lives <= 0) {
-      p.lives = 0;
-      p.alive = false;
-      eliminated.push(p.id);
-    }
+  let eliminated = ps.filter((p) => p.lives <= 0).map((p) => p.id);
+  let tiebreak = false;
+  if (eliminated.length && eliminated.length === alivePlayers(state).length) {
+    // Los últimos caen a la vez: siguen con 1 vida y repiten ronda entre ellos.
+    tiebreak = true;
+    for (const id of eliminated) playerById(state, id).lives = 1;
+    eliminated = [];
+  }
+  for (const id of eliminated) {
+    const p = playerById(state, id);
+    p.lives = 0;
+    p.alive = false;
   }
 
   const livesAfter = {};
@@ -470,12 +419,12 @@ function resolveRound(state) {
     round: state.round,
     minRank,
     reveals,
-    winners,
     losers,
     effects,
     eliminated,
+    tiebreak,
+    livesBefore,
     livesAfter,
-    byTwelve: twelveIds.length > 0,
     actions: state.roundActions.slice(),
   });
 
@@ -548,7 +497,7 @@ function publicView(state, viewerId) {
 const API = {
   SUITS,
   RANKS,
-  TIE_POLICIES,
+  LIVES_LOST,
   DEFAULT_CONFIG,
   SPECIAL_EFFECTS,
   GameError,

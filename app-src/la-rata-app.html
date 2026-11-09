@@ -32,7 +32,7 @@
   // ---------- estado ----------
   let state = null;
   let ui = { stage: 'setup' };
-  let setup = { count: 4, names: [], lives: 2, lost: 1, tie: 'empate_todos_ganan' };
+  let setup = { count: 4, names: [], lives: 2 };
   let busy = false;
   let sheet = null; // 'marcador' | 'salir' | null
   const app = document.getElementById('app');
@@ -130,9 +130,8 @@
 
   function cardTags(card) {
     const tags = [];
-    if (card.suit === 'bastos' && card.rank === 1) tags.push(h('span', { class: 'sello malo' }, 'As de bastos: −2 vidas'));
-    if (card.suit === 'bastos' && card.rank === 12) tags.push(h('span', { class: 'sello bueno' }, 'Rey de bastos: +1 vida'));
-    if (card.rank === 12) tags.push(h('span', { class: 'sello oro' }, 'Un 12 gana la ronda'));
+    if (card.suit === 'bastos' && card.rank === 1) tags.push(h('span', { class: 'sello malo' }, 'As de bastos: quita 2 vidas'));
+    if (card.suit === 'bastos' && card.rank === 12) tags.push(h('span', { class: 'sello bueno' }, 'Rey de bastos: +1 vida (sin pelle)'));
     return tags;
   }
 
@@ -180,11 +179,7 @@
           h('button', { 'aria-label': `Más ${label.toLowerCase()}`, tap: () => set(setup[key] + 1) }, '+')));
     };
 
-    const tie = h('select', { id: 'empate', class: 'campo', 'aria-label': 'Empate en la carta más baja' },
-      h('option', { value: 'empate_todos_ganan' }, 'Los empatados ganan; el resto pierde'),
-      h('option', { value: 'empate_todos_pierden' }, 'Los empatados pierden; el resto no'));
-    tie.value = setup.tie;
-    tie.addEventListener('change', () => { setup.tie = tie.value; save(); });
+
 
     const start = h('button', { class: 'btn oro', tap: startFromSetup }, 'Repartir cartas');
     start.addEventListener('pointerdown', () => { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); });
@@ -196,17 +191,16 @@
         franja(),
         h('p', { class: 'muted' }, 'Un móvil para toda la mesa. Cada uno mira solo su carta.')),
       h('div', { class: 'bloque' }, h('span', { class: 'etiqueta' }, 'JUGADORES'), fichas, nombres),
-      h('div', { class: 'ajustes' }, contador('VIDAS', 'lives', 1, 20), contador('PIERDES POR RONDA', 'lost', 1, 5)),
-      h('div', { class: 'bloque' }, h('label', { for: 'empate' }, 'SI EMPATAN CON LA MÁS BAJA'), tie),
+      h('div', { class: 'ajustes' }, contador('VIDAS INICIALES', 'lives', 1, 20), h('p', { class: 'muted small', style: 'align-self:end' }, 'Cada ronda pierde 1 vida quien tiene la carta más baja.')),
       h('details', { class: 'reglas' },
         h('summary', null, 'Reglas'),
         h('ul', null,
           h('li', null, 'Cada uno recibe una carta y solo mira la suya.'),
           h('li', null, 'En tu turno te la quedas o la cambias con el siguiente. Si te la cambian, lo verás al coger el móvil.'),
-          h('li', null, 'Quien empieza la ronda juega el último. Si tiene la carta más baja puede levantar baraja: si la que saca es mayor que la más baja de otro, pierde ese otro.'),
-          h('li', null, 'Gana la carta más baja. Un 12 gana la ronda al momento.'),
-          h('li', null, 'As de bastos: −2 vidas. Rey de bastos: +1 vida, salvo si tienes el pelle.'),
-          h('li', null, 'Sin vidas quedas fuera. Gana el último que siga vivo.'),
+          h('li', null, 'Quien reparte (va rotando) juega el último. Si tiene la carta más baja puede levantar baraja y quedarse la carta de arriba del mazo.'),
+          h('li', null, 'Al final se enseñan las cartas: pierde 1 vida quien tenga la más baja. Si empatan, pierden todos los empatados.'),
+          h('li', null, 'As de bastos: quien lo tiene pierde 2 vidas en total. Rey de bastos: +1 vida, salvo con pelle.'),
+          h('li', null, 'Sin vidas quedas fuera. Gana el último que siga vivo. Si los últimos caen a la vez, repiten ronda entre ellos.'),
           h('li', null, 'Naipes: baraja española de Basquetteur (Wikimedia Commons), CC BY-SA 3.0. Oros retocados.'))),
       h('div', { class: 'acciones' }, start));
   }
@@ -216,7 +210,7 @@
     const names = setup.names.slice(0, setup.count).map((n, i) => (n || '').trim() || `Jugador ${i + 1}`);
     if (new Set(names.map((n) => n.toLowerCase())).size !== names.length) { toast('Hay dos jugadores con el mismo nombre. Cambia uno.'); return; }
     try {
-      state = G.createGame({ lives: setup.lives, livesLostPerRound: setup.lost, tiePolicy: setup.tie, maxPlayers: 8 });
+      state = G.createGame({ lives: setup.lives, maxPlayers: 8 });
       names.forEach((name, i) => G.addPlayer(state, { id: 'j' + i, token: 'local', name }));
       G.startGame(state, state.hostId);
     } catch (err) {
@@ -407,12 +401,10 @@
 
   // --- antes de revelar ---
   function renderPrereveal() {
-    const entry = lastEntry();
-    const byTwelveDeal = ui.note === 'twelveDeal';
     return h('section', { class: 'screen' },
       cabecera(),
       h('div', { class: 'pasa' },
-        h('span', { class: 'eyebrow' }, byTwelveDeal ? '¡HA SALIDO UN 12 EN EL REPARTO!' : entry && entry.byTwelve ? '¡HA APARECIDO UN 12!' : 'TODOS HAN JUGADO'),
+        h('span', { class: 'eyebrow' }, 'TODOS HAN JUGADO'),
         h('div', { class: 'abanico', 'aria-hidden': 'true' }, naipe(null), naipe(null), naipe(null)),
         h('h2', { class: 'quien' }, 'Dejad el móvil en el centro'),
         h('p', { class: 'muted' }, 'Las cartas se revelan a la vez para toda la mesa.')),
@@ -421,26 +413,27 @@
 
   // --- revelar ---
   function livesBefore(entryIndex, id) {
-    const prev = state.history[entryIndex - 1];
-    return prev && prev.livesAfter[id] !== undefined ? prev.livesAfter[id] : state.config.lives;
+    return state.history[entryIndex].livesBefore[id];
   }
 
   function summary(entry) {
-    if (!entry.winners.length) return 'Empate en la carta más baja: nadie gana';
-    return `${entry.winners.length > 1 ? 'Ganan' : 'Gana'} ${namesOf(entry.winners)} ${entry.byTwelve ? 'con un 12' : 'con la carta más baja'}`;
+    const base = entry.losers.length > 1
+      ? `Pierden ${entry.losers.map(nameOf).join(' y ')}: empatan con la carta más baja`
+      : `Pierde ${nameOf(entry.losers[0])}: tiene la carta más baja`;
+    return entry.tiebreak ? `${base}. Los últimos caen a la vez: siguen con 1 vida y repiten ronda.` : base;
   }
 
   function cronica(entry) {
     const lines = entry.actions.map((a) => {
       if (a.type === 'keep') return [h('b', null, nameOf(a.playerId)), ' se quedó su carta'];
       if (a.type === 'swap') return [h('b', null, nameOf(a.playerId)), ' cambió con ', h('b', null, nameOf(a.neighborId))];
-      if (a.type === 'draw') return [h('b', null, nameOf(a.playerId)), ' levantó baraja'];
-      return [h('b', null, nameOf(a.playerId)), ' pierde por la baraja levantada'];
+      return [h('b', null, nameOf(a.playerId)), ' levantó baraja'];
     });
     for (const fx of entry.effects) {
       lines.push(fx.blocked
-        ? [h('b', null, nameOf(fx.playerId)), ` tenía el ${fx.label}, pero con el pelle no suma`]
-        : [h('b', null, nameOf(fx.playerId)), ` · ${fx.label}: ${fx.lives > 0 ? '+' : ''}${fx.lives} vida${Math.abs(fx.lives) > 1 ? 's' : ''}`]);
+        ? [h('b', null, nameOf(fx.playerId)), ` tenía el ${fx.label}, pero con el pelle no suma vida`]
+        : fx.lives < 0 ? [h('b', null, nameOf(fx.playerId)), ` · ${fx.label}: −${-fx.lives} vidas en total`]
+          : [h('b', null, nameOf(fx.playerId)), ` · ${fx.label}: +${fx.lives} vida`]);
     }
     if (entry.eliminated.length) lines.push([h('b', null, namesOf(entry.eliminated)), ' queda fuera']);
     if (!lines.length) return null;
@@ -460,15 +453,15 @@
       const before = livesBefore(idx, r.playerId);
       const after = entry.livesAfter[r.playerId];
       const d = after - before;
-      const isWinner = entry.winners.includes(r.playerId);
-      const n = naipe(r.card, { up: !animate, cls: isWinner && !animate ? 'brilla' : '' });
+      const isLoser = entry.losers.includes(r.playerId);
+      const n = naipe(r.card, { up: !animate, cls: animate ? '' : (isLoser ? 'pierde' : '') });
       const delta = h('span', { class: `delta ${d < 0 ? 'menos' : d > 0 ? 'mas' : ''}` }, animate ? '' : d === 0 ? '♥' + after : `${d > 0 ? '+' : ''}${d} · ♥${after}`);
-      const corona = isWinner ? h('span', { class: 'corona', html: CROWN }) : null;
-      if (corona && animate) corona.style.opacity = '0';
-      rejilla.appendChild(h('div', { class: 'asiento' }, corona, n, h('span', { class: 'nm' }, r.name), delta,
+      const marca = isLoser ? h('span', { class: 'marca-pierde' }, 'LA MÁS BAJA') : null;
+      if (marca && animate) marca.style.opacity = '0';
+      rejilla.appendChild(h('div', { class: 'asiento' }, marca, n, h('span', { class: 'nm' }, r.name), delta,
         entry.eliminated.includes(r.playerId) ? h('span', { class: 'fuera' }, 'FUERA') : null));
       cards.push(n);
-      extras.push({ n, delta, d, after, isWinner, corona });
+      extras.push({ n, delta, d, after, isLoser, marca });
     }
 
     const resumen = h('p', { class: 'muted' }, summary(entry));
@@ -496,8 +489,7 @@
         for (const c of cards) { c.classList.add('boca-arriba'); await wait(260); }
         await wait(500);
         for (const x of extras) {
-          if (x.isWinner) { x.n.classList.add('brilla'); if (x.corona) { x.corona.style.opacity = ''; x.corona.classList.add('flota'); } }
-          else x.n.classList.add('apagada');
+          if (x.isLoser) { x.n.classList.add('pierde'); if (x.marca) { x.marca.style.opacity = ''; x.marca.classList.add('flota'); } }
           x.delta.textContent = x.d === 0 ? '♥' + x.after : `${x.d > 0 ? '+' : ''}${x.d} · ♥${x.after}`;
           x.delta.classList.add('flota');
         }
