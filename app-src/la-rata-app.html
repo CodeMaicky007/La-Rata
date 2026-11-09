@@ -7,10 +7,13 @@
 <meta name="apple-mobile-web-app-title" content="La Rata">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;700;800;900&display=swap">
 <style>
 /*BASE_CSS*/
 .mesa .naipe { --w: min(54vw, 220px, 30dvh); }
+.duo .btn { font-size: 1.05rem; padding-inline: 12px; }
+.logo-grande { aspect-ratio: 1; object-fit: cover; -webkit-mask-image: radial-gradient(circle, #000 62%, transparent 71%); mask-image: radial-gradient(circle, #000 62%, transparent 71%); filter: drop-shadow(0 14px 26px rgba(0,0,0,.5)); animation: logo-pop .7s cubic-bezier(.2,1.4,.4,1) both; }
+@keyframes logo-pop { from { opacity: 0; transform: scale(.7) rotate(-6deg); } }
 .estado-turno b { color: var(--gualda); }
 </style>
 
@@ -186,9 +189,7 @@
 
     return h('section', { class: 'screen' },
       h('div', { class: 'portada' },
-        h('div', { class: 'abanico', 'aria-hidden': 'true' }, naipe(null), naipe({ rank: 1, suit: 'oros' }, { up: true }), naipe(null)),
-        h('h1', { class: 'titulo' }, 'La Rata'),
-        franja(),
+        h('img', { class: 'logo-grande', src: logoSrc(), alt: 'La Rata' }),
         h('p', { class: 'muted' }, 'Un móvil para toda la mesa. Cada uno mira solo su carta.')),
       h('div', { class: 'bloque' }, h('span', { class: 'etiqueta' }, 'JUGADORES'), fichas, nombres),
       h('div', { class: 'ajustes' }, contador('VIDAS INICIALES', 'lives', 1, 20), h('p', { class: 'muted small', style: 'align-self:end' }, 'Cada ronda pierde 1 vida quien tiene la carta más baja.')),

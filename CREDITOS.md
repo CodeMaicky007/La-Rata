@@ -16,6 +16,10 @@ Cambios hechos para este juego:
 
 Por la licencia CC BY-SA, estas imágenes modificadas se comparten con la misma licencia CC BY-SA 3.0.
 
+## Logo
+
+El logo de La Rata (`public/logo.webp`, iconos `public/icono-*.png`) lo ha aportado el propietario del proyecto.
+
 ## Resto del juego
 
-El código, el dorso con la cruz de Borgoña, las banderas y los iconos son propios de este proyecto.
+El código, el dorso con la cruz de Borgoña y los iconos de la interfaz son propios de este proyecto.

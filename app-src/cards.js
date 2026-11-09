@@ -64,8 +64,10 @@
     </svg>`;
   })();
 
-  /** Marca de la cabecera: bandera de Borgoña + nombre. */
-  const LOGO = `<span class="logo-bandera">${FLAG_BORGONA}</span><span class="logo-texto">LA RATA</span>`;
+  /** Logo del juego (imagen). Las versiones de un solo archivo lo llevan incrustado. */
+  function logoSrc() { return (typeof window !== 'undefined' && window.LARATA_LOGO) || '/logo.webp'; }
+  /** Marca de la cabecera: el logo en pequeño + nombre. */
+  const LOGO = `<img src="${logoSrc()}" alt=""><span class="logo-texto">La Rata</span>`;
   const RAT_SMALL = LOGO; // compatibilidad con plantillas antiguas
   const RAT = `<svg viewBox="0 0 64 42" fill="${GUALDA}" color="${GUALDA}" aria-hidden="true">${RAT_PATH}</svg>`;
 
@@ -76,6 +78,15 @@
     mano: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 11V5a2 2 0 0 1 4 0v5M11 10V4a2 2 0 0 1 4 0v6M15 10V6a2 2 0 0 1 4 0v8a7 7 0 0 1-7 7h-1a7 7 0 0 1-6-3.4L3 14a2 2 0 0 1 3.4-2L7 13"/></svg>',
     baraja: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="3" width="12" height="16" rx="2"/><path d="M5 6v13a2 2 0 0 0 2 2h9"/><path d="M13 8v6M10 11h6"/></svg>',
     quedar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>',
+    jugar: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z" fill="currentColor"/></svg>',
+    grupo: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="7.5" r="3.5"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7z"/><circle cx="5" cy="9" r="2.5" opacity=".75"/><circle cx="19" cy="9" r="2.5" opacity=".75"/><path d="M0.5 19c0-2.8 2-5 4.5-5 .9 0 1.7.2 2.4.7A8 8 0 0 0 4.3 19z" opacity=".75"/><path d="M23.5 19c0-2.8-2-5-4.5-5-.9 0-1.7.2-2.4.7A8 8 0 0 1 19.7 19z" opacity=".75"/></svg>',
+    movil: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></svg>',
+    libro: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M9 8h6M9 12h6"/></svg>',
+    ajustes: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.7 2l.5 2.6c.7.2 1.3.5 1.9.9l2.4-1.2 2.4 2.4-1.2 2.4c.4.6.7 1.2.9 1.9l2.6.5v3.4l-2.6.5c-.2.7-.5 1.3-.9 1.9l1.2 2.4-2.4 2.4-2.4-1.2c-.6.4-1.2.7-1.9.9l-.5 2.6h-3.4l-.5-2.6c-.7-.2-1.3-.5-1.9-.9l-2.4 1.2-2.4-2.4 1.2-2.4c-.4-.6-.7-1.2-.9-1.9L1 13.7v-3.4l2.6-.5c.2-.7.5-1.3.9-1.9L3.3 5.5l2.4-2.4 2.4 1.2c.6-.4 1.2-.7 1.9-.9L10.3 2zM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/></svg>',
+    casa: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5l10 8.5h-3v10h-5v-6h-4v6H5V11H2z"/></svg>',
+    persona: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4.5"/><path d="M3 21c0-4.4 4-8 9-8s9 3.6 9 8z"/></svg>',
+    llave: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h10M10 8l4 4-4 4"/><path d="M14 4h5a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-5"/></svg>',
+    corona: '<svg viewBox="0 0 48 36" fill="currentColor" aria-hidden="true"><path d="M4 30L2 8l11 9 11-15 11 15 11-9-2 22z"/><rect x="4" y="29" width="40" height="5" rx="2"/></svg>',
     compartir: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>',
   };
 
