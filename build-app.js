@@ -42,3 +42,13 @@ const version = crypto.createHash('sha256').update(index + single + Object.keys(
 write('public/sw.js', read('app-src/pwa/sw.js').replace('__VERSION__', version));
 write('public/manifest.webmanifest', read('app-src/pwa/manifest.webmanifest'));
 // Los iconos PNG de la app salen del logo (public/icono-*.png) y se guardan en el repositorio.
+
+// Ejemplo sin servidor (intro, menú, tienda, recompensas...), con cartas y logo incrustados.
+const demo = inlineCards(index).replace('<script>window.LARATA_CARTAS=', '<script>window.LARATA_DEMO=true;window.LARATA_CARTAS=');
+write('dist/la-rata-menu-ejemplo.html', demo);
+// Versión para publicar como artefacto: sin <html>/<head>/<body> ni manifiesto.
+const head = demo.slice(demo.indexOf('<head>') + 6, demo.indexOf('</head>'))
+  .replace(/<meta charset[^>]*>\s*/, '').replace(/<meta name="viewport"[^>]*>\s*/, '')
+  .replace(/<link rel="manifest"[^>]*>\s*/, '').replace(/<link rel="(icon|apple-touch-icon)"[^>]*>\s*/g, '');
+const body = demo.slice(demo.indexOf('<body>') + 6, demo.indexOf('</body>'));
+write('dist/la-rata-menu-artefacto.html', `${head}\n<meta name="claude:viewport-fit-sides" content="cover">\n${body}`);

@@ -785,7 +785,10 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
   });
 
   function send(msg) {
-    if (!ws || ws.readyState !== 1) { toast('Sin conexión con el servidor. Reintentando…'); return false; }
+    if (!ws || ws.readyState !== 1) {
+      toast(window.LARATA_DEMO ? 'Esto es una vista de ejemplo: para jugar en línea hace falta el servidor.' : 'Sin conexión con el servidor. Reintentando…');
+      return false;
+    }
     ws.send(JSON.stringify(msg));
     return true;
   }
@@ -891,8 +894,8 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
   }
 
   function pickScreen() {
-    if (!everConnected) return screenConnecting;
-    if (!snap) return session && resuming ? screenConnecting : screenHome;
+    // El menú se ve aunque todavía no haya conexión; solo se espera si hay una partida que recuperar.
+    if (!snap) return session && (resuming || !everConnected) && !window.LARATA_DEMO ? screenConnecting : screenHome;
     if (snap.k === 'sala') return screenLobby;
     if (snap.ph === 'turns') return screenTurns;
     if (snap.ph === 'reveal') return (fx) => revealScreen(fx, false);
@@ -1033,6 +1036,11 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
   }
   const abrir = (nombre) => () => { sheet = nombre; renderSheet(); };
 
+  function irUnaPantalla() {
+    if (window.LARATA_DEMO) { toast('En la app publicada se abre el modo de un solo móvil.'); return; }
+    location.href = '/una-pantalla.html';
+  }
+
   function fromLink() {
     return (new URLSearchParams(location.search).get('sala') || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5);
   }
@@ -1109,7 +1117,7 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
       hoja('Jugar', [h('p', { class: 'muted' }, 'Escribe el código de 5 letras que sale en el móvil de quien ha creado la partida.'), code,
         h('button', { class: 'btn oro', tap: go }, h('span', { html: ICON.llave }), 'Entrar'),
         h('p', { class: 'separador' }, 'o'),
-        h('button', { class: 'btn', tap: () => { location.href = '/una-pantalla.html'; } }, h('span', { html: ICON.movil }), 'Jugar con un solo móvil')]);
+        h('button', { class: 'btn', tap: irUnaPantalla }, h('span', { html: ICON.movil }), 'Jugar con un solo móvil')]);
       setTimeout(() => code.focus(), 60);
       return;
     }
@@ -1130,7 +1138,7 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
         h('button', { class: 'toggle', 'aria-pressed': String(vibra), tap: () => { store.set('larata-vibrar', !vibra); renderSheet(); } }, vibra ? 'Vibración activada' : 'Vibración desactivada'),
         installEvent && !standalone() ? h('button', { class: 'btn', tap: installNow }, 'Instalar la app') : null,
         isIOS() && !standalone() ? h('p', { class: 'muted small' }, 'Para instalarla: Compartir en Safari → «Añadir a pantalla de inicio».') : null,
-        h('button', { class: 'btn', tap: () => { location.href = '/una-pantalla.html'; } }, h('span', { html: ICON.movil }), 'Jugar con un solo móvil'),
+        h('button', { class: 'btn', tap: irUnaPantalla }, h('span', { html: ICON.movil }), 'Jugar con un solo móvil'),
         h('button', { class: 'btn', tap: abrir('reglas') }, h('span', { html: ICON.libro }), 'Cómo se juega'),
         h('button', { class: 'btn oro', tap: guardar }, afterName ? 'Continuar' : 'Guardar'),
         h('p', { class: 'creditos' }, 'Naipes: baraja española de Basquetteur (Wikimedia Commons), ', h('a', { href: 'https://creativecommons.org/licenses/by-sa/3.0/deed.es', target: '_blank', rel: 'noopener' }, 'CC BY-SA 3.0'), '. Oros retocados.')]);
@@ -1520,7 +1528,7 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
   try { if (navigator.wakeLock) navigator.wakeLock.request('screen').catch(() => {}); } catch (_) { /* sin bloqueo de pantalla */ }
   showIntro();
   render();
-  connect();
+  if (!window.LARATA_DEMO) connect();
   setTimeout(preloadCards, 1500);
 })();
 </script>
