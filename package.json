@@ -8,7 +8,7 @@
     "start": "node src/server.js",
     "build": "node build-app.js",
     "iconos": "node build-app.js --iconos",
-    "test": "node --test --test-force-exit test/*.test.js"
+    "test": "node --test test/*.test.js"
   },
   "engines": {
     "node": ">=20"
