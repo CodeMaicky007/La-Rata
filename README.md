@@ -41,9 +41,9 @@ También hay un `Dockerfile` por si prefieres otro proveedor (Railway, Fly.io, u
 ## Reglas implementadas
 
 - Cada uno recibe una carta y solo ve la suya.
-- Por turnos: te la quedas o la cambias con el siguiente de la lista (el último con el primero). Quien reparte juega el último.
+- Por turnos: te la quedas o la cambias con el siguiente de la lista (el último con el primero). Quien reparte en cada ronda (va rotando) juega el último.
 - Quien reparte, si tiene la carta más baja, puede levantar baraja. Si la carta que saca es mayor que la más baja de otro, ese otro pierde.
 - Gana la carta más baja. Un 12 gana la ronda al momento.
-- As de bastos: −2 vidas. Rey de bastos: +1 vida, salvo con pelle (lo da quien reparte desde el marcador).
+- As de bastos: −2 vidas. Rey de bastos: +1 vida, salvo con pelle (lo da quien lleva la mesa, desde el marcador).
 - Vidas iniciales configurables (2 por defecto). Sin vidas quedas fuera; gana el último vivo.
 - Empate en la carta más baja: configurable (los empatados ganan, o los empatados pierden).

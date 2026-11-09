@@ -701,7 +701,7 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
       h('details', { class: 'reglas' }, h('summary', null, 'Reglas'), h('ul', null,
         h('li', null, 'Cada uno recibe una carta y solo ve la suya.'),
         h('li', null, 'En tu turno te la quedas o la cambias con el siguiente. Si te la cambian, verás cómo se va tu carta y llega la suya.'),
-        h('li', null, 'Quien reparte juega el último. Si tiene la carta más baja puede levantar baraja: si la que saca es mayor que la más baja de otro, pierde ese otro.'),
+        h('li', null, 'Quien reparte en cada ronda (va rotando) juega el último. Si tiene la carta más baja puede levantar baraja: si la que saca es mayor que la más baja de otro, pierde ese otro.'),
         h('li', null, 'Gana la carta más baja. Un 12 gana la ronda al momento.'),
         h('li', null, 'As de bastos: −2 vidas. Rey de bastos: +1 vida, salvo con pelle.'),
         h('li', null, 'Sin vidas quedas fuera. Gana el último que siga vivo.'))),
@@ -724,13 +724,13 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
     const lobby = snap.lobby;
     const lista = h('div', { class: 'sala-lista' }, lobby.map((x, i) => h('div', { class: `sala-fila ${online.has(x.p) ? '' : 'desconectado'}` },
       h('span', { class: 'asiento-n' }, i + 1),
-      h('span', { class: 'nm' }, x.n, x.p === snap.me ? h('span', { class: 'tu' }, '  · tú') : null, x.p === snap.host ? h('span', { class: 'tu' }, '  · reparte') : null),
+      h('span', { class: 'nm' }, x.n, x.p === snap.me ? h('span', { class: 'tu' }, '  · tú') : null, x.p === snap.host ? h('span', { class: 'tu' }, '  · lleva la mesa') : null),
       host ? h('div', { class: 'ctrl' },
         h('button', { 'aria-label': `Subir a ${x.n}`, disabled: i === 0 ? true : null, tap: () => send({ type: 'move', target: x.p, delta: -1 }) }, '↑'),
         h('button', { 'aria-label': `Bajar a ${x.n}`, disabled: i === lobby.length - 1 ? true : null, tap: () => send({ type: 'move', target: x.p, delta: 1 }) }, '↓'),
         x.p !== snap.me ? h('button', { 'aria-label': `Sacar a ${x.n}`, tap: () => send({ type: 'kick', target: x.p }) }, '×') : null) : h('span'))));
 
-    const parts = [cabecera(host ? 'Tú repartes' : `Reparte ${nameOf(snap.host)}`),
+    const parts = [cabecera(host ? 'Tú llevas la mesa' : `Mesa de ${nameOf(snap.host)}`),
       h('div', { class: 'codigo-sala' }, h('span', { class: 'eyebrow' }, 'CÓDIGO DE LA SALA'), h('span', { class: 'letras' }, snap.code),
         h('button', { class: 'btn chico', tap: shareCode }, 'Invitar por WhatsApp o enlace')),
       h('div', { class: 'resultado' }, h('h2', null, `${lobby.length} en la mesa`)),
@@ -754,7 +754,7 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
         h('div', { class: 'acciones' }, h('button', { class: 'btn oro', disabled: !enough || pending ? true : null, tap: () => act('start') }, enough ? 'Repartir cartas' : 'Esperando jugadores')));
     } else {
       parts.push(h('p', { class: 'muted small' }, `${snap.cfg.lives} vidas · pierdes ${snap.cfg.lost} por ronda`),
-        h('div', { class: 'acciones' }, h('p', { class: 'estado-turno puntos' }, `Esperando a que ${nameOf(snap.host)} reparta`)));
+        h('div', { class: 'acciones' }, h('p', { class: 'estado-turno puntos' }, `Esperando a que ${nameOf(snap.host)} reparta las cartas`)));
     }
     return h('section', { class: 'screen' }, parts);
   }
@@ -970,7 +970,7 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
     if (sheet === 'salir') {
       document.body.appendChild(h('div', { class: 'velo centro' }, h('div', { class: 'dialogo', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Salir de la sala' },
         h('h3', null, '¿Salir de la sala?'),
-        h('p', { class: 'muted' }, snap.k === 'juego' ? 'La partida sigue sin ti; tu turno lo puede pasar quien reparte.' : 'Dejarás tu sitio en la mesa.'),
+        h('p', { class: 'muted' }, snap.k === 'juego' ? 'La partida sigue sin ti; tu turno lo puede pasar quien lleva la mesa.' : 'Dejarás tu sitio en la mesa.'),
         h('div', { class: 'duo' }, h('button', { class: 'btn', tap: cerrar }, 'Quedarme'),
           h('button', { class: 'btn rojo', tap: () => { send({ type: 'leave' }); leaveRoom(); } }, 'Salir')))));
       return;
@@ -992,7 +992,7 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
     if (!(snap.hi || []).length) historia.appendChild(h('p', { class: 'muted small' }, 'Aún no ha terminado ninguna ronda.'));
     const velo = h('div', { class: 'velo' }, h('div', { class: 'hoja', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Marcador' },
       h('div', { class: 'hoja-cab' }, h('h2', null, 'Marcador'), h('button', { class: 'btn chico', tap: cerrar }, 'Cerrar')),
-      h('p', { class: 'muted small' }, `Sala ${snap.code}. ${host ? 'Quien tiene el pelle no recupera vida con el Rey de bastos.' : 'El pelle lo da quien reparte. Con pelle no se recupera vida con el Rey de bastos.'}`),
+      h('p', { class: 'muted small' }, `Sala ${snap.code}. ${host ? 'Quien tiene el pelle no recupera vida con el Rey de bastos.' : 'El pelle lo da quien lleva la mesa. Con pelle no se recupera vida con el Rey de bastos.'}`),
       jugadores, h('span', { class: 'etiqueta' }, 'RONDAS'), historia,
       h('button', { class: 'btn fantasma', tap: () => { sheet = 'salir'; renderSheet(); } }, 'Salir de la sala')));
     velo.addEventListener('click', (e) => { if (e.target === velo) cerrar(); });
