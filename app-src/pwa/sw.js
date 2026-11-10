@@ -17,7 +17,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   const url = new URL(req.url);
-  if (req.method !== 'GET' || url.origin !== location.origin || url.pathname === '/ws' || url.pathname === '/salud') return;
+  if (req.method !== 'GET' || url.origin !== location.origin || url.pathname.startsWith('/api/') || url.pathname === '/ws' || url.pathname === '/salud') return;
   // Páginas: primero la red (para tener siempre la última versión), y si no hay red, la copia guardada.
   if (req.mode === 'navigate') {
     event.respondWith(fetch(req).then((res) => {

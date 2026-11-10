@@ -11,7 +11,14 @@ const crypto = require('crypto');
 
 const root = __dirname;
 const read = (f) => fs.readFileSync(path.join(root, f), 'utf8');
-const write = (f, text) => { fs.mkdirSync(path.dirname(path.join(root, f)), { recursive: true }); fs.writeFileSync(path.join(root, f), text); console.log(f, Buffer.byteLength(text), 'bytes'); };
+// Comprueba que todos los <script> de una página compilan antes de escribirla.
+function checkScripts(f, text) {
+  if (!f.endsWith('.html')) return;
+  for (const m of text.matchAll(/<script>([\s\S]*?)<\/script>/g)) {
+    try { new Function(m[1]); } catch (e) { throw new Error(`Error de sintaxis en ${f}: ${e.message}`); }
+  }
+}
+const write = (f, text) => { checkScripts(f, text); fs.mkdirSync(path.dirname(path.join(root, f)), { recursive: true }); fs.writeFileSync(path.join(root, f), text); console.log(f, Buffer.byteLength(text), 'bytes'); };
 
 const parts = { '/*GAME_JS*/': read('src/game.js'), '/*BASE_CSS*/': read('app-src/base.css'), '/*CARDS_JS*/': read('app-src/cards.js') };
 function fill(src) {

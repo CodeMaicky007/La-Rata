@@ -322,7 +322,7 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
 
   function connect() {
     const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-    try { ws = new WebSocket(`${proto}://${location.host}/ws`); } catch (_) { scheduleReconnect(); return; }
+    try { ws = new WebSocket(`${proto}://${location.host}/api/ws`); /* en Render y en Vercel */ } catch (_) { scheduleReconnect(); return; }
     ws.onopen = () => {
       connected = true; everConnected = true; retryMs = 800;
       if (session) { resuming = true; send({ type: 'resume', code: session.code, token: session.token }); }
