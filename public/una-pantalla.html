@@ -142,7 +142,8 @@ button { font: inherit; color: inherit; }
 
 /* ---------- cabecera de partida ---------- */
 .cabecera { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; }
-.marca { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.marca { display: flex; align-items: center; gap: 8px; flex-shrink: 0; background: none; border: 0; padding: 0; margin: 0; color: inherit; font: inherit; cursor: pointer; border-radius: 14px; -webkit-tap-highlight-color: transparent; }
+.marca:active { transform: scale(.94); }
 .marca img { width: 42px; height: 42px; border-radius: 12px; border: 2px solid var(--borde); box-shadow: 0 4px 10px rgba(0,0,0,.4); }
 .logo-bandera { display: none; }
 .logo-texto { font-family: var(--display); font-size: 1.25rem; color: var(--naipe); text-shadow: 0 2px 0 var(--oro-sombra); }
@@ -329,6 +330,7 @@ details.reglas ul, .lista-reglas { margin: 10px 0 0; padding-left: 20px; display
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0ms !important; transition-duration: .01ms !important; }
 }
+
 
 .mesa .naipe { --w: min(54vw, 220px, 30dvh); }
 .duo .btn { font-size: 1.05rem; padding-inline: 12px; }
@@ -1128,10 +1130,17 @@ if (typeof window !== 'undefined') window.LaRataGame = API;
     save();
   }
 
+  function volverInicio() {
+    // En la web, el inicio es el menú principal; en el archivo suelto, la pantalla de preparar partida.
+    if (location.protocol.startsWith('http') && /una-pantalla/.test(location.pathname)) { save(); location.href = '/'; return; }
+    if (state) { sheet = 'salir'; renderSheet(); return; }
+    ui = { stage: 'setup' }; render();
+  }
+
   function cabecera() {
     const info = state ? `Ronda ${state.round}` : '';
     return h('header', { class: 'cabecera' },
-      h('div', { class: 'marca', html: RAT_SMALL }, ),
+      h('button', { class: 'marca', html: RAT_SMALL, 'aria-label': 'Volver al inicio', tap: volverInicio }),
       h('span', { class: 'ronda' }, info),
       h('button', { class: 'btn chico', tap: () => { sheet = 'marcador'; renderSheet(); } }, 'Marcador'));
   }
@@ -1275,7 +1284,7 @@ if (typeof window !== 'undefined') window.LaRataGame = API;
 
     const screen = h('section', { class: 'screen' },
       h('header', { class: 'cabecera' },
-        h('div', { class: 'marca', html: RAT_SMALL }),
+        h('button', { class: 'marca', html: RAT_SMALL, 'aria-label': 'Volver al inicio', tap: volverInicio }),
         h('span', { class: 'ronda' }, `${me.name} · ♥${me.lives}${me.pelle ? ' · pelle' : ''}${isLast ? ' · último turno' : ''}`)),
       swapIn ? h('div', { class: 'banner-cambio', role: 'status' }, h('span', { html: ICON.cambio }),
         h('p', null, h('strong', null, nameOf(swapIn.playerId)), ' te ha cambiado la carta. Esta es la que te ha dado.')) : null,
@@ -1348,7 +1357,7 @@ if (typeof window !== 'undefined') window.LaRataGame = API;
       : h('p', { class: 'muted' }, 'Levantas la carta de arriba de la baraja.');
 
     const screen = h('section', { class: 'screen' },
-      h('header', { class: 'cabecera' }, h('div', { class: 'marca', html: RAT_SMALL }), h('span', { class: 'ronda' }, swap ? 'Cambio de carta' : 'Levantar baraja')),
+      h('header', { class: 'cabecera' }, h('button', { class: 'marca', html: RAT_SMALL, 'aria-label': 'Volver al inicio', tap: volverInicio }), h('span', { class: 'ronda' }, swap ? 'Cambio de carta' : 'Levantar baraja')),
       titulo,
       h('div', { class: 'mesa' }, h('div', { class: 'halo' }), carta),
       leyenda,

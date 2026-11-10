@@ -147,10 +147,17 @@
     save();
   }
 
+  function volverInicio() {
+    // En la web, el inicio es el menú principal; en el archivo suelto, la pantalla de preparar partida.
+    if (location.protocol.startsWith('http') && /una-pantalla/.test(location.pathname)) { save(); location.href = '/'; return; }
+    if (state) { sheet = 'salir'; renderSheet(); return; }
+    ui = { stage: 'setup' }; render();
+  }
+
   function cabecera() {
     const info = state ? `Ronda ${state.round}` : '';
     return h('header', { class: 'cabecera' },
-      h('div', { class: 'marca', html: RAT_SMALL }, ),
+      h('button', { class: 'marca', html: RAT_SMALL, 'aria-label': 'Volver al inicio', tap: volverInicio }),
       h('span', { class: 'ronda' }, info),
       h('button', { class: 'btn chico', tap: () => { sheet = 'marcador'; renderSheet(); } }, 'Marcador'));
   }
@@ -294,7 +301,7 @@
 
     const screen = h('section', { class: 'screen' },
       h('header', { class: 'cabecera' },
-        h('div', { class: 'marca', html: RAT_SMALL }),
+        h('button', { class: 'marca', html: RAT_SMALL, 'aria-label': 'Volver al inicio', tap: volverInicio }),
         h('span', { class: 'ronda' }, `${me.name} · ♥${me.lives}${me.pelle ? ' · pelle' : ''}${isLast ? ' · último turno' : ''}`)),
       swapIn ? h('div', { class: 'banner-cambio', role: 'status' }, h('span', { html: ICON.cambio }),
         h('p', null, h('strong', null, nameOf(swapIn.playerId)), ' te ha cambiado la carta. Esta es la que te ha dado.')) : null,
@@ -367,7 +374,7 @@
       : h('p', { class: 'muted' }, 'Levantas la carta de arriba de la baraja.');
 
     const screen = h('section', { class: 'screen' },
-      h('header', { class: 'cabecera' }, h('div', { class: 'marca', html: RAT_SMALL }), h('span', { class: 'ronda' }, swap ? 'Cambio de carta' : 'Levantar baraja')),
+      h('header', { class: 'cabecera' }, h('button', { class: 'marca', html: RAT_SMALL, 'aria-label': 'Volver al inicio', tap: volverInicio }), h('span', { class: 'ronda' }, swap ? 'Cambio de carta' : 'Levantar baraja')),
       titulo,
       h('div', { class: 'mesa' }, h('div', { class: 'halo' }), carta),
       leyenda,

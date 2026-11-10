@@ -123,7 +123,8 @@ button { font: inherit; color: inherit; }
 
 /* ---------- cabecera de partida ---------- */
 .cabecera { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; }
-.marca { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.marca { display: flex; align-items: center; gap: 8px; flex-shrink: 0; background: none; border: 0; padding: 0; margin: 0; color: inherit; font: inherit; cursor: pointer; border-radius: 14px; -webkit-tap-highlight-color: transparent; }
+.marca:active { transform: scale(.94); }
 .marca img { width: 42px; height: 42px; border-radius: 12px; border: 2px solid var(--borde); box-shadow: 0 4px 10px rgba(0,0,0,.4); }
 .logo-bandera { display: none; }
 .logo-texto { font-family: var(--display); font-size: 1.25rem; color: var(--naipe); text-shadow: 0 2px 0 var(--oro-sombra); }
@@ -310,3 +311,4 @@ details.reglas ul, .lista-reglas { margin: 10px 0 0; padding-left: 20px; display
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0ms !important; transition-duration: .01ms !important; }
 }
+

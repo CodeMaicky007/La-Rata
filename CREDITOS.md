@@ -10,7 +10,7 @@ a través de la versión vectorial de [gjenkins20/spanish-playing-cards-svg](htt
 Licencia: [Creative Commons Reconocimiento-CompartirIgual 3.0](https://creativecommons.org/licenses/by-sa/3.0/deed.es) (CC BY-SA 3.0).
 
 Cambios hechos para este juego:
-- Se han pasado a imágenes WebP de 400 × 616 píxeles sobre fondo de naipe.
+- Se han pasado a imágenes WebP de 1080 × 1663 píxeles sobre fondo de naipe.
 - En las cartas de oros, las monedas originales (con el logotipo de GNU) se han sustituido por un oro clásico dibujado para este juego (`app-src/pwa/oro-clasico.svg`).
 - El As de oros se ha recompuesto con un oro grande en el centro.
 

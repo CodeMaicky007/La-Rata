@@ -142,7 +142,8 @@ button { font: inherit; color: inherit; }
 
 /* ---------- cabecera de partida ---------- */
 .cabecera { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; }
-.marca { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.marca { display: flex; align-items: center; gap: 8px; flex-shrink: 0; background: none; border: 0; padding: 0; margin: 0; color: inherit; font: inherit; cursor: pointer; border-radius: 14px; -webkit-tap-highlight-color: transparent; }
+.marca:active { transform: scale(.94); }
 .marca img { width: 42px; height: 42px; border-radius: 12px; border: 2px solid var(--borde); box-shadow: 0 4px 10px rgba(0,0,0,.4); }
 .logo-bandera { display: none; }
 .logo-texto { font-family: var(--display); font-size: 1.25rem; color: var(--naipe); text-shadow: 0 2px 0 var(--oro-sombra); }
@@ -329,6 +330,7 @@ details.reglas ul, .lista-reglas { margin: 10px 0 0; padding-left: 20px; display
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0ms !important; transition-duration: .01ms !important; }
 }
+
 
 
 /* ---------- app con servidor ---------- */
@@ -534,8 +536,6 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
 .mesa .naipe { --w: min(52vw, 210px, 26dvh); }
 .mesa .naipe.toca { cursor: pointer; }
 /* turno: carta grande con los botones encima */
-.marca { background: none; border: 0; padding: 0; cursor: pointer; border-radius: 14px; }
-.marca:active { transform: scale(.94); }
 #app:has(.screen.turno) { height: 100%; min-height: 0; box-sizing: border-box; }
 .screen.turno { min-height: 0; }
 .mesa-grande { flex: 1; min-height: 0; display: grid; place-items: center; container-type: size; }
@@ -543,17 +543,29 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
 .carta-marco > .naipe { --w: inherit; z-index: 1; filter: drop-shadow(0 18px 30px rgba(0,0,0,.55)); }
 .carta-marco > .naipe.toca { cursor: pointer; }
 .sobre { position: absolute; left: 10px; right: 10px; z-index: 3; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
-.sobre.arriba { top: 10px; align-items: center; }
-.sobre.abajo { bottom: 12px; }
+.sobre.arriba { top: -16px; align-items: center; }
+.sobre.abajo { bottom: -22px; left: 8px; right: 8px; }
 .sobre button, .sobre .banner-cambio { pointer-events: auto; }
-.sobre .leyenda { min-height: 0; gap: 4px; padding: 6px 16px; border-radius: 999px; background: rgba(4, 38, 13, .86); border: 2px solid var(--oro); box-shadow: 0 6px 16px rgba(0,0,0,.45); }
-.sobre .leyenda .carta-nombre { font-size: 1.15rem; }
+.sobre .leyenda { min-height: 0; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 4px 8px; padding: 5px 14px; border-radius: 999px; background: rgba(4, 38, 13, .82); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); border: 1.5px solid rgba(246,198,74,.85); box-shadow: 0 6px 16px rgba(0,0,0,.35); }
+.sobre .leyenda .carta-nombre { font-size: 1.05rem; }
 .sobre .leyenda .orden:empty { display: none; }
+.sobre .leyenda .orden { gap: 4px; }
+.sobre .leyenda .sello { font-size: .68rem; padding: 2px 8px; }
+.screen.turno .mesa-grande { padding-top: 18px; }
+.hoja-cab .marca .logo-texto { display: none; }
+.hoja-cab h2 { flex: 1; }
+.rejilla { --cols: 4; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); container-type: inline-size; }
+.asiento .naipe { --w: min(calc(100cqw / var(--cols) - 18px), 150px); }
 .sobre .banner-cambio { width: 100%; }
 .sobre .acciones { margin: 0; gap: 8px; }
-.sobre .estado-turno { align-self: center; padding: 6px 14px; border-radius: 999px; background: rgba(4, 38, 13, .86); border: 2px solid var(--oro); font-size: 1rem; box-shadow: 0 6px 16px rgba(0,0,0,.45); }
-.sobre .btn { box-shadow: 0 5px 0 rgba(0,0,0,.45), 0 10px 22px rgba(0,0,0,.5); }
-.sobre .duo .btn { font-size: .98rem; min-height: 52px; }
+.botonera { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.botonera.tres { grid-template-columns: 1fr 1fr 1fr; }
+.botonera .btn { min-height: 48px; padding: 6px 10px; font-size: .95rem; line-height: 1.1; gap: 6px; box-shadow: 0 4px 0 rgba(0,0,0,.45), 0 10px 22px rgba(0,0,0,.45); }
+.botonera .btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+.botonera .lbl { display: flex; flex-direction: column; align-items: flex-start; }
+.botonera .lbl small { font-size: .72rem; opacity: .85; font-weight: 800; }
+.screen.turno .estado-turno { margin: -4px 0 -6px; font-size: 1rem; }
+.screen.turno .mesa-grande { padding-bottom: 26px; }
 .duo .btn { font-size: 1.05rem; padding-inline: 12px; }
 .pista { text-align: center; font-size: .8rem; font-weight: 700; color: var(--muted); }
 .banner-cambio.mio { background: linear-gradient(180deg, var(--oro-claro), var(--oro)); color: #2b1700; border-color: #8a5a0c; box-shadow: 0 5px 0 var(--oro-sombra), 0 12px 24px rgba(0,0,0,.4); }
@@ -925,7 +937,7 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
 
   function cabecera(extra) {
     return h('header', { class: 'cabecera' },
-      h('button', { class: 'marca', html: RAT_SMALL, 'aria-label': 'Volver al inicio', tap: irInicio }),
+      botonLogo(),
       h('span', { class: 'ronda' }, extra || ''),
       snap && snap.k === 'juego' ? h('button', { class: 'btn chico', tap: () => { sheet = 'marcador'; renderSheet(); } }, 'Marcador')
         : snap ? h('button', { class: 'btn chico fantasma', tap: () => { sheet = 'salir'; renderSheet(); } }, 'Salir') : null);
@@ -933,8 +945,10 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
 
   function irInicio() {
     if (snap) { sheet = 'salir'; renderSheet(); return; }
-    sheet = null; render();
+    if (session) { resuming = false; send({ type: 'leave' }); leaveRoom(); }
+    sheet = null; afterName = null; render();
   }
+  const botonLogo = () => h('button', { class: 'marca', html: RAT_SMALL, 'aria-label': 'Volver al inicio', tap: irInicio });
 
   function screenConnecting() {
     return h('section', { class: 'screen' }, h('div', { class: 'pasa' },
@@ -1127,7 +1141,7 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
   function hoja(titulo, contenido, extraCls) {
     const cerrar = () => { sheet = null; afterName = null; renderSheet(); };
     const velo = h('div', { class: 'velo' }, h('div', { class: `hoja ${extraCls || ''}`, role: 'dialog', 'aria-modal': 'true', 'aria-label': titulo },
-      h('div', { class: 'hoja-cab' }, h('h2', null, titulo), h('button', { class: 'btn chico', tap: cerrar }, 'Cerrar')), contenido));
+      h('div', { class: 'hoja-cab' }, h('button', { class: 'marca', html: RAT_SMALL, 'aria-label': 'Volver al inicio', tap: cerrar }), h('h2', null, titulo), h('button', { class: 'btn chico', tap: cerrar }, 'Cerrar')), contenido));
     velo.addEventListener('click', (e) => { if (e.target === velo) cerrar(); });
     document.body.appendChild(velo);
     return cerrar;
@@ -1359,22 +1373,24 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
       const next = nextAliveAfter(snap.me);
       const busy = !!pending;
       acciones.append(...[
-        h('p', { class: 'estado-turno' }, h('b', null, 'Te toca.'), ' ¿Te la quedas o la cambias?'),
-        h('div', { class: 'duo' },
+        h('div', { class: `botonera ${snap.cd === snap.me ? 'tres' : ''}` },
           h('button', { class: 'btn', disabled: busy ? true : null, tap: () => act('keep') }, h('span', { html: ICON.quedar }), 'Me la quedo'),
-          h('button', { class: 'btn rojo', disabled: busy || !next ? true : null, tap: () => act('swap') }, h('span', { html: ICON.cambio }), next ? `Cambiar con ${nameOf(next)}` : 'Cambiar')),
-        snap.cd === snap.me ? h('button', { class: 'btn oro', disabled: busy ? true : null, tap: () => act('draw') }, h('span', { html: ICON.baraja }), 'Levantar baraja') : null,
-      ].filter(Boolean));
+          h('button', { class: 'btn rojo', disabled: busy || !next ? true : null, tap: () => act('swap') }, h('span', { html: ICON.cambio }), next ? h('span', { class: 'lbl' }, 'Cambiar', h('small', null, `con ${nameOf(next)}`)) : 'Cambiar'),
+          snap.cd === snap.me ? h('button', { class: 'btn oro', disabled: busy ? true : null, tap: () => act('draw') }, h('span', { html: ICON.baraja }), 'Levantar') : null),
+      ]);
       const key = `${snap.sid}:${snap.r}:${snap.ti}`;
       if (lastTurnBuzz !== key) { lastTurnBuzz = key; vibrate([30, 40, 30]); }
     } else {
-      acciones.append(h('p', { class: 'estado-turno' }, 'Turno de ', h('b', null, nameOf(snap.cur)), h('span', { class: 'puntos' })));
     }
+    const estado = myTurn
+      ? h('p', { class: 'estado-turno tuyo' }, h('b', null, 'Te toca.'), ' ¿Te la quedas o la cambias?')
+      : h('p', { class: 'estado-turno' }, 'Turno de ', h('b', null, nameOf(snap.cur)), h('span', { class: 'puntos' }));
+    parts.push(estado);
     const tools = hostTurnTools();
-    if (tools) acciones.append(tools);
+    if (tools) parts.push(tools);
     parts.push(h('div', { class: 'mesa-grande' }, h('div', { class: 'carta-marco' }, carta,
       h('div', { class: 'sobre arriba' }, bannerEl, leyenda),
-      h('div', { class: 'sobre abajo' }, acciones))));
+      myTurn ? h('div', { class: 'sobre abajo' }, acciones) : null)));
 
     if (fx.effect) animateCard(fx, carta, card, fill, toggle);
     return h('section', { class: 'screen turno' }, parts);
@@ -1433,7 +1449,7 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
     const res = snap.res;
     if (!res) return h('section', { class: 'screen' }, cabecera(''), h('p', { class: 'estado-turno puntos' }, 'Revelando'));
     const animate = !!fx.revealAnim;
-    const rejilla = h('div', { class: 'rejilla' });
+    const rejilla = h('div', { class: 'rejilla', style: `--cols:${Math.min(Math.max(res.rv.length, 2), 4)}` });
     const items = [];
     for (const [pid, code] of res.rv) {
       const card = dec(code);
@@ -1536,7 +1552,7 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
     });
     if (!(snap.hi || []).length) historia.appendChild(h('p', { class: 'muted small' }, 'Aún no ha terminado ninguna ronda.'));
     const velo = h('div', { class: 'velo' }, h('div', { class: 'hoja', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Marcador' },
-      h('div', { class: 'hoja-cab' }, h('h2', null, 'Marcador'), h('button', { class: 'btn chico', tap: cerrar }, 'Cerrar')),
+      h('div', { class: 'hoja-cab' }, h('button', { class: 'marca', html: RAT_SMALL, 'aria-label': 'Volver', tap: cerrar }), h('h2', null, 'Marcador'), h('button', { class: 'btn chico', tap: cerrar }, 'Cerrar')),
       h('p', { class: 'muted small' }, `Sala ${snap.code}. ${host ? 'Quien tiene el pelle no recupera vida con el Rey de bastos.' : 'El pelle lo da quien lleva la mesa. Con pelle no se recupera vida con el Rey de bastos.'}`),
       jugadores, h('span', { class: 'etiqueta' }, 'RONDAS'), historia,
       h('button', { class: 'btn fantasma', tap: () => { sheet = 'salir'; renderSheet(); } }, 'Salir de la sala')));
