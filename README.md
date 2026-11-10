@@ -10,7 +10,7 @@ Juego de cartas multijugador con baraja española. Cada jugador juega desde su m
 | Lo que ve cada jugador | `src/snapshot.js` | Estado compacto por jugador: solo su carta durante la ronda. |
 | Servidor | `src/server.js` | Sirve la app, salas con código de 5 letras, WebSocket en `/api/ws`, reconexión, `/salud`. |
 | Almacén de partidas | `src/store.js` | En memoria (un servidor) o en Redis (varias copias, Vercel). |
-| Función de Vercel | `api/ws.mjs`, `vercel.json` | El mismo servidor como función de Vercel. |
+| Vercel | `vercel.json` | Vercel arranca `src/server.js` como servidor Node (con WebSocket) y sirve `public/`. |
 | App instalable | `app-src/la-rata-server.html` → `public/` | Interfaz del móvil (PWA: manifiesto, service worker, iconos). |
 | Un solo móvil | `app-src/la-rata-app.html` → `public/una-pantalla.html` | Modo pasar el móvil de mano en mano, funciona sin conexión. |
 | Pruebas | `test/` | Reglas y una partida completa contra el servidor real. |
@@ -34,7 +34,7 @@ Para probar con móviles en tu misma wifi, abre `http://IP-DE-TU-ORDENADOR:3000`
 
 ### Vercel (recomendado)
 
-1. En [vercel.com](https://vercel.com): **Add New → Project → Import** el repositorio `la-rata`. No hay que cambiar nada: `vercel.json` ya lo configura (carpeta `public/`, función `api/ws.mjs` para el WebSocket).
+1. En [vercel.com](https://vercel.com): **Add New → Project → Import** el repositorio `la-rata`. No hay que cambiar nada: `vercel.json` ya lo configura (arranca `src/server.js` y sirve `public/`).
 2. En el proyecto: **Storage → Create Database → Upstash Redis** (plan gratuito) y conéctala al proyecto. Añade la variable `REDIS_URL` (o `KV_URL`) que usa el servidor para guardar las partidas.
 3. **Deployments → Redeploy** para que la variable se aplique. Comprueba `https://…vercel.app/salud`: debe decir `"almacen":"redis"`.
 

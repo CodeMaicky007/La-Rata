@@ -361,4 +361,11 @@ if (require.main === module) {
   });
 }
 
-module.exports = { createAppServer };
+if (process.env.VERCEL && require.main !== module) {
+  // En Vercel este archivo es el punto de entrada: hay que exportar el servidor ya creado.
+  const server = createAppServer();
+  server.createAppServer = createAppServer;
+  module.exports = server;
+} else {
+  module.exports = { createAppServer };
+}

@@ -1,13 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "npm install --omit=dev",
-  "buildCommand": "echo \"La carpeta public/ ya viene construida\"",
-  "outputDirectory": "public",
-  "rewrites": [
-    { "source": "/ws", "destination": "/api/ws" },
-    { "source": "/salud", "destination": "/api/ws" }
-  ],
-  "functions": {
-    "api/ws.mjs": { "maxDuration": 300 }
-  }
+  "buildCommand": "echo \"La carpeta public/ ya viene construida\""
 }
