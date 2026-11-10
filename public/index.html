@@ -351,11 +351,11 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
 @keyframes logo-entra { 0% { transform: scale(.2) rotate(-14deg); opacity: 0; } 60% { opacity: 1; } 100% { transform: none; opacity: 1; } }
 @keyframes logo-respira { 50% { transform: scale(1.03); } }
 .intro-cartas { position: absolute; z-index: 1; left: 50%; top: 52%; width: 0; height: 0; }
-.intro-cartas .naipe { position: absolute; --w: min(24vw, 110px); left: calc(var(--w) / -2); top: calc(var(--w) * -0.77); opacity: 0; transform-origin: 50% 160%; animation: abanico .9s cubic-bezier(.2,1.2,.3,1) forwards; }
-.intro-cartas .naipe:nth-child(1) { --r: -48deg; --tx: -26vw; animation-delay: .75s; }
-.intro-cartas .naipe:nth-child(2) { --r: -18deg; --tx: -10vw; animation-delay: .85s; }
-.intro-cartas .naipe:nth-child(3) { --r: 18deg; --tx: 10vw; animation-delay: .95s; }
-.intro-cartas .naipe:nth-child(4) { --r: 48deg; --tx: 26vw; animation-delay: 1.05s; }
+.intro-cartas .naipe { position: absolute; --w: min(22vw, 110px); left: calc(var(--w) / -2); top: calc(var(--w) * -0.77); opacity: 0; transform-origin: 50% 160%; animation: abanico .9s cubic-bezier(.2,1.2,.3,1) forwards; }
+.intro-cartas .naipe:nth-child(1) { --r: -28deg; --tx: min(-14vw, -66px); animation-delay: .75s; }
+.intro-cartas .naipe:nth-child(2) { --r: -12deg; --tx: min(-6vw, -28px); animation-delay: .85s; }
+.intro-cartas .naipe:nth-child(3) { --r: 12deg; --tx: max(6vw, 28px); animation-delay: .95s; }
+.intro-cartas .naipe:nth-child(4) { --r: 28deg; --tx: max(14vw, 66px); animation-delay: 1.05s; }
 @keyframes abanico { from { opacity: 0; transform: translateY(40vh) rotate(0); } to { opacity: .95; transform: translate(var(--tx), -6vh) rotate(var(--r)); } }
 .intro-chispas i { position: absolute; z-index: 3; left: var(--x); top: var(--y); width: 6px; height: 6px; border-radius: 50%; background: #ffe7a0; box-shadow: 0 0 10px 3px rgba(255,214,110,.8); opacity: 0; animation: chispa 2.2s var(--d) ease-in-out infinite; }
 @keyframes chispa { 0%, 100% { opacity: 0; transform: scale(.3); } 50% { opacity: 1; transform: scale(1); } }
