@@ -533,6 +533,27 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
 .estado-turno b { color: var(--oro); font-family: var(--display); font-weight: 400; }
 .mesa .naipe { --w: min(52vw, 210px, 26dvh); }
 .mesa .naipe.toca { cursor: pointer; }
+/* turno: carta grande con los botones encima */
+.marca { background: none; border: 0; padding: 0; cursor: pointer; border-radius: 14px; }
+.marca:active { transform: scale(.94); }
+#app:has(.screen.turno) { height: 100%; min-height: 0; box-sizing: border-box; }
+.screen.turno { min-height: 0; }
+.mesa-grande { flex: 1; min-height: 0; display: grid; place-items: center; container-type: size; }
+.carta-marco { position: relative; --w: min(100cqw, 520px, calc(100cqh / 1.54)); width: var(--w); }
+.carta-marco > .naipe { --w: inherit; z-index: 1; filter: drop-shadow(0 18px 30px rgba(0,0,0,.55)); }
+.carta-marco > .naipe.toca { cursor: pointer; }
+.sobre { position: absolute; left: 10px; right: 10px; z-index: 3; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+.sobre.arriba { top: 10px; align-items: center; }
+.sobre.abajo { bottom: 12px; }
+.sobre button, .sobre .banner-cambio { pointer-events: auto; }
+.sobre .leyenda { min-height: 0; gap: 4px; padding: 6px 16px; border-radius: 999px; background: rgba(4, 38, 13, .86); border: 2px solid var(--oro); box-shadow: 0 6px 16px rgba(0,0,0,.45); }
+.sobre .leyenda .carta-nombre { font-size: 1.15rem; }
+.sobre .leyenda .orden:empty { display: none; }
+.sobre .banner-cambio { width: 100%; }
+.sobre .acciones { margin: 0; gap: 8px; }
+.sobre .estado-turno { align-self: center; padding: 6px 14px; border-radius: 999px; background: rgba(4, 38, 13, .86); border: 2px solid var(--oro); font-size: 1rem; box-shadow: 0 6px 16px rgba(0,0,0,.45); }
+.sobre .btn { box-shadow: 0 5px 0 rgba(0,0,0,.45), 0 10px 22px rgba(0,0,0,.5); }
+.sobre .duo .btn { font-size: .98rem; min-height: 52px; }
 .duo .btn { font-size: 1.05rem; padding-inline: 12px; }
 .pista { text-align: center; font-size: .8rem; font-weight: 700; color: var(--muted); }
 .banner-cambio.mio { background: linear-gradient(180deg, var(--oro-claro), var(--oro)); color: #2b1700; border-color: #8a5a0c; box-shadow: 0 5px 0 var(--oro-sombra), 0 12px 24px rgba(0,0,0,.4); }
@@ -905,10 +926,15 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
 
   function cabecera(extra) {
     return h('header', { class: 'cabecera' },
-      h('div', { class: 'marca', html: RAT_SMALL }),
+      h('button', { class: 'marca', html: RAT_SMALL, 'aria-label': 'Volver al inicio', tap: irInicio }),
       h('span', { class: 'ronda' }, extra || ''),
       snap && snap.k === 'juego' ? h('button', { class: 'btn chico', tap: () => { sheet = 'marcador'; renderSheet(); } }, 'Marcador')
         : snap ? h('button', { class: 'btn chico fantasma', tap: () => { sheet = 'salir'; renderSheet(); } }, 'Salir') : null);
+  }
+
+  function irInicio() {
+    if (snap) { sheet = 'salir'; renderSheet(); return; }
+    sheet = null; render();
   }
 
   function screenConnecting() {
@@ -1300,6 +1326,7 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
     const card = myCard(snap);
     const myTurn = snap.cur === snap.me;
     const parts = [cabecera(`Ronda ${snap.r}`), ordenTurnos()];
+    let bannerEl = null;
 
     if (banner && card) {
       const txt = banner.kind === 'recibido'
@@ -1307,7 +1334,7 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
         : banner.kind === 'cambiado'
           ? ['Le has dado tu carta a ', h('strong', null, nameOf(banner.other)), '. Ahora tienes la suya.']
           : ['Has levantado baraja. Esta es tu carta nueva.'];
-      parts.push(h('div', { class: `banner-cambio ${banner.kind === 'recibido' ? '' : 'mio'}`, role: 'status' }, h('span', { html: ICON.cambio }), h('p', null, txt)));
+      bannerEl = h('div', { class: `banner-cambio ${banner.kind === 'recibido' ? '' : 'mio'}`, role: 'status' }, h('span', { html: ICON.cambio }), h('p', null, txt));
     }
 
     if (!card) {
@@ -1325,9 +1352,8 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
     const toggle = (el) => onTap(el, () => { if (animating) return; cardHidden = !cardHidden; el.classList.toggle('boca-arriba', !cardHidden); fill(card); });
     toggle(carta);
     const leyenda = h('div', { class: 'leyenda' });
-    const fill = (c) => leyenda.replaceChildren(h('span', { class: 'carta-nombre' }, cardHidden ? 'Carta tapada' : cardName(c)), h('div', { class: 'orden' }, cardHidden ? [] : cardTags(c)));
+    const fill = (c) => leyenda.replaceChildren(h('span', { class: 'carta-nombre' }, cardHidden ? 'Carta tapada · tócala para verla' : cardName(c)), cardHidden ? null : h('div', { class: 'orden' }, cardTags(c)));
     if (!fx.effect) fill(card);
-    parts.push(h('div', { class: 'mesa' }, h('div', { class: 'halo' }), carta), leyenda, h('p', { class: 'pista' }, 'Toca la carta para taparla o destaparla'));
 
     const acciones = h('div', { class: 'acciones' });
     if (myTurn) {
@@ -1347,10 +1373,12 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
     }
     const tools = hostTurnTools();
     if (tools) acciones.append(tools);
-    parts.push(acciones);
+    parts.push(h('div', { class: 'mesa-grande' }, h('div', { class: 'carta-marco' }, carta,
+      h('div', { class: 'sobre arriba' }, bannerEl, leyenda),
+      h('div', { class: 'sobre abajo' }, acciones))));
 
     if (fx.effect) animateCard(fx, carta, card, fill, toggle);
-    return h('section', { class: 'screen' }, parts);
+    return h('section', { class: 'screen turno' }, parts);
   }
 
   function animateCard(fx, carta, card, fill, toggle) {
@@ -1487,10 +1515,10 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
     const cerrar = () => { sheet = null; renderSheet(); };
     if (sheet === 'salir') {
       document.body.appendChild(h('div', { class: 'velo centro' }, h('div', { class: 'dialogo', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Salir de la sala' },
-        h('h3', null, '¿Salir de la sala?'),
+        h('h3', null, '¿Volver al inicio?'),
         h('p', { class: 'muted' }, snap.k === 'juego' ? 'La partida sigue sin ti; tu turno lo puede pasar quien lleva la mesa.' : 'Dejarás tu sitio en la mesa.'),
         h('div', { class: 'duo' }, h('button', { class: 'btn', tap: cerrar }, 'Quedarme'),
-          h('button', { class: 'btn rojo', tap: () => { send({ type: 'leave' }); leaveRoom(); } }, 'Salir')))));
+          h('button', { class: 'btn rojo', tap: () => { send({ type: 'leave' }); leaveRoom(); } }, 'Salir al inicio')))));
       return;
     }
     if (snap.k !== 'juego') { sheet = null; return; }
