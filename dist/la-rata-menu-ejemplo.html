@@ -1568,7 +1568,14 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
 
   // ---------- arranque ----------
   if ('serviceWorker' in navigator && location.protocol === 'https:') {
-    navigator.serviceWorker.register('/sw.js').catch(() => { /* la app funciona igual sin él */ });
+    // Si ya había una versión guardada y llega una nueva, recargar una vez para estrenarla (cartas incluidas).
+    const habiaVersion = !!navigator.serviceWorker.controller;
+    let recargada = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!habiaVersion || recargada || snap) return; // en mitad de una partida no se recarga
+      recargada = true; location.reload();
+    });
+    navigator.serviceWorker.register('/sw.js').then((r) => r.update()).catch(() => { /* la app funciona igual sin él */ });
   }
   try { if (navigator.wakeLock) navigator.wakeLock.request('screen').catch(() => {}); } catch (_) { /* sin bloqueo de pantalla */ }
   showIntro();
