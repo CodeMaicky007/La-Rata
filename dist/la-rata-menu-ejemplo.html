@@ -332,6 +332,42 @@ details.reglas ul, .lista-reglas { margin: 10px 0 0; padding-left: 20px; display
 }
 
 
+/* turno: carta grande con los botones encima */
+#app:has(.screen.turno) { height: 100%; min-height: 0; box-sizing: border-box; }
+.screen.turno { min-height: 0; }
+.mesa-grande { flex: 1; min-height: 0; display: grid; place-items: center; container-type: size; }
+.carta-marco { position: relative; --w: min(100cqw, 520px, calc(100cqh / 1.54)); width: var(--w); }
+.carta-marco > .naipe { --w: inherit; z-index: 1; filter: drop-shadow(0 18px 30px rgba(0,0,0,.55)); }
+.carta-marco > .naipe.toca { cursor: pointer; }
+.sobre { position: absolute; left: 10px; right: 10px; z-index: 3; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+.sobre.arriba { top: -16px; align-items: center; }
+.sobre.abajo { bottom: -22px; left: 8px; right: 8px; }
+.sobre button, .sobre .banner-cambio { pointer-events: auto; }
+.sobre .leyenda { min-height: 0; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 4px 8px; padding: 5px 14px; border-radius: 999px; background: rgba(4, 38, 13, .82); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); border: 1.5px solid rgba(246,198,74,.85); box-shadow: 0 6px 16px rgba(0,0,0,.35); }
+.sobre .leyenda .carta-nombre { font-size: 1.05rem; }
+.sobre .leyenda .orden:empty { display: none; }
+.sobre .leyenda .orden { gap: 4px; }
+.sobre .leyenda .sello { font-size: .68rem; padding: 2px 8px; }
+.screen.turno .mesa-grande { padding-top: 18px; }
+.hoja-cab .marca .logo-texto { display: none; }
+.hoja-cab h2 { flex: 1; }
+.rejilla { --cols: 4; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); container-type: inline-size; }
+.asiento .naipe { --w: min(calc(100cqw / var(--cols) - 18px), 150px); }
+.estado-turno { text-align: center; font-size: 1.1rem; font-weight: 800; }
+.estado-turno b { color: var(--oro); font-family: var(--display); font-weight: 400; }
+.sobre .banner-cambio { width: 100%; }
+.sobre .acciones { margin: 0; gap: 8px; }
+.botonera { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.botonera.tres { grid-template-columns: 1fr 1fr 1fr; }
+.botonera .btn { min-height: 48px; padding: 6px 10px; font-size: .95rem; line-height: 1.1; gap: 6px; box-shadow: 0 4px 0 rgba(0,0,0,.45), 0 10px 22px rgba(0,0,0,.45); }
+.botonera .btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+.botonera .lbl { display: flex; flex-direction: column; align-items: flex-start; }
+.botonera .lbl small { font-size: .72rem; opacity: .85; font-weight: 800; }
+.screen.turno .estado-turno { margin: -4px 0 -6px; font-size: 1rem; }
+.screen.turno .mesa-grande { padding-bottom: 26px; }
+.screen.turno .tapar { align-self: center; gap: 6px; }
+.screen.turno .tapar svg { width: 18px; height: 18px; }
+
 
 /* ---------- app con servidor ---------- */
 html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
@@ -531,41 +567,9 @@ html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area
 .nota { font-size: .9rem; font-weight: 700; color: var(--muted); padding: 10px 12px; border-radius: 14px; background: rgba(0,0,0,.25); border-left: 4px solid var(--oro); }
 .puntos::after { content: ""; animation: puntos 1.4s steps(4) infinite; }
 @keyframes puntos { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
-.estado-turno { text-align: center; font-size: 1.1rem; font-weight: 800; }
-.estado-turno b { color: var(--oro); font-family: var(--display); font-weight: 400; }
 .mesa .naipe { --w: min(52vw, 210px, 26dvh); }
 .mesa .naipe.toca { cursor: pointer; }
-/* turno: carta grande con los botones encima */
-#app:has(.screen.turno) { height: 100%; min-height: 0; box-sizing: border-box; }
-.screen.turno { min-height: 0; }
-.mesa-grande { flex: 1; min-height: 0; display: grid; place-items: center; container-type: size; }
-.carta-marco { position: relative; --w: min(100cqw, 520px, calc(100cqh / 1.54)); width: var(--w); }
-.carta-marco > .naipe { --w: inherit; z-index: 1; filter: drop-shadow(0 18px 30px rgba(0,0,0,.55)); }
-.carta-marco > .naipe.toca { cursor: pointer; }
-.sobre { position: absolute; left: 10px; right: 10px; z-index: 3; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
-.sobre.arriba { top: -16px; align-items: center; }
-.sobre.abajo { bottom: -22px; left: 8px; right: 8px; }
-.sobre button, .sobre .banner-cambio { pointer-events: auto; }
-.sobre .leyenda { min-height: 0; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 4px 8px; padding: 5px 14px; border-radius: 999px; background: rgba(4, 38, 13, .82); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); border: 1.5px solid rgba(246,198,74,.85); box-shadow: 0 6px 16px rgba(0,0,0,.35); }
-.sobre .leyenda .carta-nombre { font-size: 1.05rem; }
-.sobre .leyenda .orden:empty { display: none; }
-.sobre .leyenda .orden { gap: 4px; }
-.sobre .leyenda .sello { font-size: .68rem; padding: 2px 8px; }
-.screen.turno .mesa-grande { padding-top: 18px; }
-.hoja-cab .marca .logo-texto { display: none; }
-.hoja-cab h2 { flex: 1; }
-.rejilla { --cols: 4; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); container-type: inline-size; }
-.asiento .naipe { --w: min(calc(100cqw / var(--cols) - 18px), 150px); }
-.sobre .banner-cambio { width: 100%; }
-.sobre .acciones { margin: 0; gap: 8px; }
-.botonera { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.botonera.tres { grid-template-columns: 1fr 1fr 1fr; }
-.botonera .btn { min-height: 48px; padding: 6px 10px; font-size: .95rem; line-height: 1.1; gap: 6px; box-shadow: 0 4px 0 rgba(0,0,0,.45), 0 10px 22px rgba(0,0,0,.45); }
-.botonera .btn svg { width: 18px; height: 18px; flex-shrink: 0; }
-.botonera .lbl { display: flex; flex-direction: column; align-items: flex-start; }
-.botonera .lbl small { font-size: .72rem; opacity: .85; font-weight: 800; }
-.screen.turno .estado-turno { margin: -4px 0 -6px; font-size: 1rem; }
-.screen.turno .mesa-grande { padding-bottom: 26px; }
+
 .duo .btn { font-size: 1.05rem; padding-inline: 12px; }
 .pista { text-align: center; font-size: .8rem; font-weight: 700; color: var(--muted); }
 .banner-cambio.mio { background: linear-gradient(180deg, var(--oro-claro), var(--oro)); color: #2b1700; border-color: #8a5a0c; box-shadow: 0 5px 0 var(--oro-sombra), 0 12px 24px rgba(0,0,0,.4); }

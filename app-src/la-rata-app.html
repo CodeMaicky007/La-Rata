@@ -291,13 +291,10 @@
     const isLast = state.turnIdx === state.turnOrder.length - 1;
     const botones = [];
     const quedar = h('button', { class: 'btn', tap: () => doKeep(id) }, h('span', { html: ICON.quedar }), 'Me la quedo');
-    const cambiar = h('button', { class: 'btn rojo', tap: () => doSwap(id, card, carta) }, h('span', { html: ICON.cambio }), next ? `Cambiar con ${nameOf(next)}` : 'Cambiar');
+    const cambiar = h('button', { class: 'btn rojo', tap: () => doSwap(id, card, carta) }, h('span', { html: ICON.cambio }), next ? h('span', { class: 'lbl' }, 'Cambiar', h('small', null, `con ${nameOf(next)}`)) : 'Cambiar');
     cambiar.disabled = !next;
-    botones.push(h('div', { class: 'duo' }, quedar, cambiar));
-    if (view.you.canDraw) {
-      botones.push(h('button', { class: 'btn oro', tap: () => doDraw(id, carta) }, h('span', { html: ICON.baraja }), 'Levantar baraja'));
-    }
-    botones.push(h('button', { class: 'btn fantasma', tap: () => { if (busy) return; ui = { stage: 'cover' }; render(); } }, 'Tapar la carta'));
+    botones.push(quedar, cambiar);
+    if (view.you.canDraw) botones.push(h('button', { class: 'btn oro', tap: () => doDraw(id, carta) }, h('span', { html: ICON.baraja }), 'Levantar'));
 
     const screen = h('section', { class: 'screen' },
       h('header', { class: 'cabecera' },
@@ -305,9 +302,12 @@
         h('span', { class: 'ronda' }, `${me.name} · ♥${me.lives}${me.pelle ? ' · pelle' : ''}${isLast ? ' · último turno' : ''}`)),
       swapIn ? h('div', { class: 'banner-cambio', role: 'status' }, h('span', { html: ICON.cambio }),
         h('p', null, h('strong', null, nameOf(swapIn.playerId)), ' te ha cambiado la carta. Esta es la que te ha dado.')) : null,
-      h('div', { class: 'mesa' }, h('div', { class: 'halo' }), carta),
-      leyenda,
-      h('div', { class: 'acciones' }, botones));
+      h('p', { class: 'estado-turno' }, h('b', null, 'Te toca.'), ' ¿Te la quedas o la cambias?'),
+      h('div', { class: 'mesa-grande' }, h('div', { class: 'carta-marco' }, carta,
+        h('div', { class: 'sobre arriba' }, leyenda),
+        h('div', { class: 'sobre abajo' }, h('div', { class: `botonera ${botones.length === 3 ? 'tres' : ''}` }, botones)))),
+      h('button', { class: 'btn fantasma chico tapar', tap: () => { if (busy) return; ui = { stage: 'cover' }; render(); } }, h('span', { html: ICON.ojo }), 'Tapar y pasar el móvil'));
+    screen.classList.add('turno');
 
     if (fresh) {
       busy = true;
@@ -376,9 +376,10 @@
     const screen = h('section', { class: 'screen' },
       h('header', { class: 'cabecera' }, h('button', { class: 'marca', html: RAT_SMALL, 'aria-label': 'Volver al inicio', tap: volverInicio }), h('span', { class: 'ronda' }, swap ? 'Cambio de carta' : 'Levantar baraja')),
       titulo,
-      h('div', { class: 'mesa' }, h('div', { class: 'halo' }), carta),
-      leyenda,
+      h('div', { class: 'mesa-grande' }, h('div', { class: 'carta-marco' }, carta,
+        h('div', { class: 'sobre arriba' }, leyenda))),
       h('div', { class: 'acciones' }, seguir));
+    screen.classList.add('turno');
 
     busy = true;
     requestAnimationFrame(async () => {
@@ -397,8 +398,8 @@
         : [{ transform: 'translateY(-90%) rotate(-6deg) scale(.8)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 560 });
       await flip(nueva, true);
       nueva.classList.add('brilla');
+      titulo.replaceChildren(...(swap ? ['Ahora tienes la carta de ', h('b', null, nameOf(ui.withId))] : ['Has sacado esta carta']));
       leyenda.replaceChildren(
-        h('span', { class: 'eyebrow' }, swap ? `AHORA TIENES LA CARTA DE ${nameOf(ui.withId).toUpperCase()}` : 'HAS SACADO'),
         h('span', { class: 'carta-nombre' }, cardName(ui.newCard)),
         h('div', { class: 'orden' }, cardTags(ui.newCard)));
       seguir.disabled = false;

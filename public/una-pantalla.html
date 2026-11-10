@@ -332,6 +332,42 @@ details.reglas ul, .lista-reglas { margin: 10px 0 0; padding-left: 20px; display
 }
 
 
+/* turno: carta grande con los botones encima */
+#app:has(.screen.turno) { height: 100%; min-height: 0; box-sizing: border-box; }
+.screen.turno { min-height: 0; }
+.mesa-grande { flex: 1; min-height: 0; display: grid; place-items: center; container-type: size; }
+.carta-marco { position: relative; --w: min(100cqw, 520px, calc(100cqh / 1.54)); width: var(--w); }
+.carta-marco > .naipe { --w: inherit; z-index: 1; filter: drop-shadow(0 18px 30px rgba(0,0,0,.55)); }
+.carta-marco > .naipe.toca { cursor: pointer; }
+.sobre { position: absolute; left: 10px; right: 10px; z-index: 3; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+.sobre.arriba { top: -16px; align-items: center; }
+.sobre.abajo { bottom: -22px; left: 8px; right: 8px; }
+.sobre button, .sobre .banner-cambio { pointer-events: auto; }
+.sobre .leyenda { min-height: 0; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 4px 8px; padding: 5px 14px; border-radius: 999px; background: rgba(4, 38, 13, .82); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); border: 1.5px solid rgba(246,198,74,.85); box-shadow: 0 6px 16px rgba(0,0,0,.35); }
+.sobre .leyenda .carta-nombre { font-size: 1.05rem; }
+.sobre .leyenda .orden:empty { display: none; }
+.sobre .leyenda .orden { gap: 4px; }
+.sobre .leyenda .sello { font-size: .68rem; padding: 2px 8px; }
+.screen.turno .mesa-grande { padding-top: 18px; }
+.hoja-cab .marca .logo-texto { display: none; }
+.hoja-cab h2 { flex: 1; }
+.rejilla { --cols: 4; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); container-type: inline-size; }
+.asiento .naipe { --w: min(calc(100cqw / var(--cols) - 18px), 150px); }
+.estado-turno { text-align: center; font-size: 1.1rem; font-weight: 800; }
+.estado-turno b { color: var(--oro); font-family: var(--display); font-weight: 400; }
+.sobre .banner-cambio { width: 100%; }
+.sobre .acciones { margin: 0; gap: 8px; }
+.botonera { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.botonera.tres { grid-template-columns: 1fr 1fr 1fr; }
+.botonera .btn { min-height: 48px; padding: 6px 10px; font-size: .95rem; line-height: 1.1; gap: 6px; box-shadow: 0 4px 0 rgba(0,0,0,.45), 0 10px 22px rgba(0,0,0,.45); }
+.botonera .btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+.botonera .lbl { display: flex; flex-direction: column; align-items: flex-start; }
+.botonera .lbl small { font-size: .72rem; opacity: .85; font-weight: 800; }
+.screen.turno .estado-turno { margin: -4px 0 -6px; font-size: 1rem; }
+.screen.turno .mesa-grande { padding-bottom: 26px; }
+.screen.turno .tapar { align-self: center; gap: 6px; }
+.screen.turno .tapar svg { width: 18px; height: 18px; }
+
 .mesa .naipe { --w: min(54vw, 220px, 30dvh); }
 .duo .btn { font-size: 1.05rem; padding-inline: 12px; }
 .logo-grande { aspect-ratio: 1; object-fit: cover; -webkit-mask-image: radial-gradient(circle, #000 62%, transparent 71%); mask-image: radial-gradient(circle, #000 62%, transparent 71%); filter: drop-shadow(0 14px 26px rgba(0,0,0,.5)); animation: logo-pop .7s cubic-bezier(.2,1.4,.4,1) both; }
@@ -1274,13 +1310,10 @@ if (typeof window !== 'undefined') window.LaRataGame = API;
     const isLast = state.turnIdx === state.turnOrder.length - 1;
     const botones = [];
     const quedar = h('button', { class: 'btn', tap: () => doKeep(id) }, h('span', { html: ICON.quedar }), 'Me la quedo');
-    const cambiar = h('button', { class: 'btn rojo', tap: () => doSwap(id, card, carta) }, h('span', { html: ICON.cambio }), next ? `Cambiar con ${nameOf(next)}` : 'Cambiar');
+    const cambiar = h('button', { class: 'btn rojo', tap: () => doSwap(id, card, carta) }, h('span', { html: ICON.cambio }), next ? h('span', { class: 'lbl' }, 'Cambiar', h('small', null, `con ${nameOf(next)}`)) : 'Cambiar');
     cambiar.disabled = !next;
-    botones.push(h('div', { class: 'duo' }, quedar, cambiar));
-    if (view.you.canDraw) {
-      botones.push(h('button', { class: 'btn oro', tap: () => doDraw(id, carta) }, h('span', { html: ICON.baraja }), 'Levantar baraja'));
-    }
-    botones.push(h('button', { class: 'btn fantasma', tap: () => { if (busy) return; ui = { stage: 'cover' }; render(); } }, 'Tapar la carta'));
+    botones.push(quedar, cambiar);
+    if (view.you.canDraw) botones.push(h('button', { class: 'btn oro', tap: () => doDraw(id, carta) }, h('span', { html: ICON.baraja }), 'Levantar'));
 
     const screen = h('section', { class: 'screen' },
       h('header', { class: 'cabecera' },
@@ -1288,9 +1321,12 @@ if (typeof window !== 'undefined') window.LaRataGame = API;
         h('span', { class: 'ronda' }, `${me.name} · ♥${me.lives}${me.pelle ? ' · pelle' : ''}${isLast ? ' · último turno' : ''}`)),
       swapIn ? h('div', { class: 'banner-cambio', role: 'status' }, h('span', { html: ICON.cambio }),
         h('p', null, h('strong', null, nameOf(swapIn.playerId)), ' te ha cambiado la carta. Esta es la que te ha dado.')) : null,
-      h('div', { class: 'mesa' }, h('div', { class: 'halo' }), carta),
-      leyenda,
-      h('div', { class: 'acciones' }, botones));
+      h('p', { class: 'estado-turno' }, h('b', null, 'Te toca.'), ' ¿Te la quedas o la cambias?'),
+      h('div', { class: 'mesa-grande' }, h('div', { class: 'carta-marco' }, carta,
+        h('div', { class: 'sobre arriba' }, leyenda),
+        h('div', { class: 'sobre abajo' }, h('div', { class: `botonera ${botones.length === 3 ? 'tres' : ''}` }, botones)))),
+      h('button', { class: 'btn fantasma chico tapar', tap: () => { if (busy) return; ui = { stage: 'cover' }; render(); } }, h('span', { html: ICON.ojo }), 'Tapar y pasar el móvil'));
+    screen.classList.add('turno');
 
     if (fresh) {
       busy = true;
@@ -1359,9 +1395,10 @@ if (typeof window !== 'undefined') window.LaRataGame = API;
     const screen = h('section', { class: 'screen' },
       h('header', { class: 'cabecera' }, h('button', { class: 'marca', html: RAT_SMALL, 'aria-label': 'Volver al inicio', tap: volverInicio }), h('span', { class: 'ronda' }, swap ? 'Cambio de carta' : 'Levantar baraja')),
       titulo,
-      h('div', { class: 'mesa' }, h('div', { class: 'halo' }), carta),
-      leyenda,
+      h('div', { class: 'mesa-grande' }, h('div', { class: 'carta-marco' }, carta,
+        h('div', { class: 'sobre arriba' }, leyenda))),
       h('div', { class: 'acciones' }, seguir));
+    screen.classList.add('turno');
 
     busy = true;
     requestAnimationFrame(async () => {
@@ -1380,8 +1417,8 @@ if (typeof window !== 'undefined') window.LaRataGame = API;
         : [{ transform: 'translateY(-90%) rotate(-6deg) scale(.8)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 560 });
       await flip(nueva, true);
       nueva.classList.add('brilla');
+      titulo.replaceChildren(...(swap ? ['Ahora tienes la carta de ', h('b', null, nameOf(ui.withId))] : ['Has sacado esta carta']));
       leyenda.replaceChildren(
-        h('span', { class: 'eyebrow' }, swap ? `AHORA TIENES LA CARTA DE ${nameOf(ui.withId).toUpperCase()}` : 'HAS SACADO'),
         h('span', { class: 'carta-nombre' }, cardName(ui.newCard)),
         h('div', { class: 'orden' }, cardTags(ui.newCard)));
       seguir.disabled = false;
